@@ -5,10 +5,17 @@ import os
 import numpy as np
 from sklearn.model_selection import train_test_split
 from helpermethods import ReadRadarWindows, one_hot, bagData
+import argparse
 
-# TODO: Pass as argument
-extractedDir = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/' \
-                'Data/Austere_subset_features/Raw_winlen_256_stride_171'
+parser = argparse.ArgumentParser(description='HyperParameters for EMI-LSTM')
+parser.add_argument('-Dat', type=str, help='Directory containing fixed-length windowed data')
+parser.add_argument('-l', type=int, default=48, help='Sub-instance length')
+parser.add_argument('-s', type=str, default=16, help='Sub-instance stride length')
+
+args = parser.parse_args()
+
+extractedDir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/' \
+                #'Data/Austere_subset_features/Raw_winlen_256_stride_171'
 target_path = os.path.join(extractedDir, 'Targets')
 noise_path = os.path.join(extractedDir, 'Noise')
 
@@ -58,10 +65,8 @@ y_test = one_hot(y_test, numOutput)
 
 
 # Create EMI data
-# TODO: Pass as argument
-subinstanceLen = 48
-# TODO: Pass as argument
-subinstanceStride = 16
+subinstanceLen = args.l #48
+subinstanceStride = args.s #16
 outDir = extractedDir + '/%d_%d/' % (subinstanceLen, subinstanceStride)
 
 print('subinstanceLen', subinstanceLen)

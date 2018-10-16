@@ -2,6 +2,7 @@ import os
 import sys
 import tensorflow as tf
 import numpy as np
+import argparse
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../../')
@@ -16,39 +17,57 @@ from edgeml.graph.rnn import EMI_BasicLSTM
 from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
 import edgeml.utils
 
+parser = argparse.ArgumentParser(description='HyperParameters for EMI-LSTM')
+parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances')
+parser.add_argument('-H', type=int, default=16, help='Number of hidden units')
+parser.add_argument('-ts', type=str, default=48, help='Number of timesteps')
+parser.add_argument('-ots', type=str, default=256, help='Original number of timesteps')
+parser.add_argument('-F', type=str, default=2, help='Number of features')
+parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
+parser.add_argument('-O', type=int, default=2, help='Number of outputs')
+parser.add_argument('-d', type=bool, default=True, help='Dropout?')
+parser.add_argument('-kp', type=float, default=0.75, help='Keep probability')
+parser.add_argument('-bs', type=int, default=32, help='Batch size')
+parser.add_argument('-ep', type=int, default=3, help='Number of epochs per iteration')
+parser.add_argument('-it', type=int, default=4, help='Number of iterations per round')
+parser.add_argument('-rnd', type=int, default=10, help='Number of rounds')
+parser.add_argument('-Dat', type=str, help='Data directory')
+
+args = parser.parse_args()
+
 # Network parameters for our LSTM + FC Layer
-NUM_HIDDEN = 16 # TODO: Make this an input argument
-NUM_TIMESTEPS = 48 # TODO: Make this an input argument
-ORIGINAL_NUM_TIMESTEPS = 256 # TODO: Make this an input argument
-NUM_FEATS = 2 # TODO: Make this an input argument
-FORGET_BIAS = 1.0 # TODO: Make this an input argument
-NUM_OUTPUT = 2 # TODO: Make this an input argument
-USE_DROPOUT = True # TODO: Make this an input argument
-KEEP_PROB = 0.75 # TODO: Make this an input argument
+k = args.k #2
+NUM_HIDDEN = args.H #16
+NUM_TIMESTEPS = args.ts #48
+ORIGINAL_NUM_TIMESTEPS = args.ots #256
+NUM_FEATS = args.F #2
+FORGET_BIAS = args.fb #1.0
+NUM_OUTPUT = args.O #2
+USE_DROPOUT = args.d #True
+KEEP_PROB = args.kp #0.75
 
 # For dataset API
-PREFETCH_NUM = 5 # TODO: Make this an input argument
-BATCH_SIZE = 32 # TODO: Make this an input argument
+PREFETCH_NUM = 5
+BATCH_SIZE = args.bs #32
 
 # Number of epochs in *one iteration*
-NUM_EPOCHS = 3 # TODO: Make this an input argument
+NUM_EPOCHS = args.ep #3
 # Number of iterations in *one round*. After each iteration,
 # the model is dumped to disk. At the end of the current
 # round, the best model among all the dumped models in the
 # current round is picked up..
-NUM_ITER = 4 # TODO: Make this an input argument
+NUM_ITER = args.it #4
 # A round consists of multiple training iterations and a belief
 # update step using the best model from all of these iterations
-NUM_ROUNDS = 10 # TODO: Make this an input argument
-LEARNING_RATE=0.001 # TODO: Make this an input argument
+NUM_ROUNDS = args.rnd #10
+LEARNING_RATE = 0.001
 
 # A staging directory to store models
 MODEL_PREFIX = '/tmp/model-lstm'
 
 # Loading the data
-# TODO: Make this an input argument
-data_dir = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
-           'Raw_winlen_256_stride_171/48_16/'
+data_dir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
+           #'Raw_winlen_256_stride_171/48_16/'
 
 x_train, y_train = np.load(data_dir + 'x_train.npy'), np.load(data_dir + 'y_train.npy')
 x_test, y_test = np.load(data_dir + 'x_test.npy'), np.load(data_dir + 'y_test.npy')
@@ -123,7 +142,7 @@ y_updated, modelStats = emiDriver.run(numClasses=NUM_OUTPUT, x_train=x_train,
                                       numIter=NUM_ITER, keep_prob=KEEP_PROB,
                                       numRounds=NUM_ROUNDS, batchSize=BATCH_SIZE,
                                       numEpochs=NUM_EPOCHS, modelPrefix=MODEL_PREFIX,
-                                      fracEMI=0.5, updatePolicy='top-k', k=1)
+                                      fracEMI=0.5, updatePolicy='top-k', k=k)
 
 '''
 Evaluating the  trained model
@@ -153,7 +172,7 @@ def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
         return savings, totalSteps
     return savings
 
-k = 2
+#k = 2
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
 bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
