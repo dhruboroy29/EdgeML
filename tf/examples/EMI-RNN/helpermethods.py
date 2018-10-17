@@ -16,7 +16,7 @@ def ReadRadarWindows(path):
     def ReadOneWindow(filepath):
         assert os.path.splitext(filepath)[1] == '.data' or os.path.splitext(filepath)[1] == '.bbs'
         comp = np.fromfile(filepath, dtype=np.uint16)
-        return np.reshape(comp, (256, -1))
+        return np.reshape(comp, (-1, 2))
 
     instances = [ ReadOneWindow(file) for file in [os.path.join(path, file) for file in glob.glob(
         os.path.join(path,'*.data'))]]
