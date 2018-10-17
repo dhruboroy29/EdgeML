@@ -10,7 +10,8 @@ import argparse
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-LSTM')
 parser.add_argument('-Dat', type=str, help='Directory containing fixed-length windowed data')
 parser.add_argument('-l', type=int, default=48, help='Sub-instance length')
-parser.add_argument('-s', type=str, default=16, help='Sub-instance stride length')
+parser.add_argument('-s', type=int, default=16, help='Sub-instance stride length')
+parser.add_argument('-spl', type=float, default=0.1, help='Validation/test split')
 
 args = parser.parse_args()
 
@@ -31,9 +32,9 @@ feats = X.shape[-1]
 timesteps = X.shape[-2]
 
 # Splitting data into train/test/validation (size of test set = validation set)
-x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=args.spl, random_state=42)
 x_train, x_val, y_train, y_val = train_test_split(x_train, y_train,
-                                                  test_size=0.1*(len(y_train)+len(y_test))/len(y_train), random_state=42)
+                                                  test_size=args.spl*(len(y_train)+len(y_test))/len(y_train), random_state=42)
 
 # Normalize train, test, validation
 x_train = np.reshape(x_train, [-1, feats])

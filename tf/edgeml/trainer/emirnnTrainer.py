@@ -373,6 +373,26 @@ class EMI_Driver:
             sess.run(init)
         self.__sess = sess
 
+    def initializeSession(self, graph, config, reuse=False, feedDict=None):
+        '''
+        Initialize a new session with the computation graph provided in graph.
+
+        graph: The computation graph needed to be used for the current session.
+        reuse: If True, global_variables_initializer will not be invoked and
+            the graph will retain the current tensor states/values.
+        feedDict: Not used
+        '''
+        sess = self.__sess
+        if sess is not None:
+           sess.close()
+        with graph.as_default():
+            sess = tf.Session(config=config)
+        if reuse is False:
+            with graph.as_default():
+                init = tf.global_variables_initializer()
+            sess.run(init)
+        self.__sess = sess
+
     def getCurrentSession(self):
         '''
         Returns the current tf.Session()
@@ -613,6 +633,7 @@ class EMI_Driver:
             correct = (pred_ == Y_bag).astype('int')
             trueAcc = np.mean(correct)
             cmatrix = utils.getConfusionMatrix(pred_, Y_bag, numClass)
+
             df.iloc[i-1, df.columns.get_loc('acc')] = trueAcc
 
             macro, micro = utils.getMacroMicroFScore(cmatrix)

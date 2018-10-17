@@ -1,12 +1,17 @@
 import os
+import errno
 import sys
 import tensorflow as tf
 import numpy as np
 import argparse
+import edgeml.utils as utils
+import time
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../../')
 os.environ['CUDA_VISIBLE_DEVICES'] ='0'
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
 
 np.random.seed(42)
 tf.set_random_seed(42)
@@ -76,7 +81,16 @@ NUM_ROUNDS = args.rnd #10
 #LEARNING_RATE=0.001
 
 # A staging directory to store models
-MODEL_PREFIX = '/tmp/models/model-fgrnn'
+MODEL_PREFIX = '/tmp/models/model-fgrnn/'+str(int(time.time()))+'/'
+
+# Make model directory
+try:
+    os.makedirs(MODEL_PREFIX)
+except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(MODEL_PREFIX):
+        pass
+    else:
+        raise
 
 # Loading the data
 data_dir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
@@ -147,7 +161,7 @@ with g1.as_default():
 with g1.as_default():
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer)
 
-emiDriver.initializeSession(g1)
+emiDriver.initializeSession(g1, config=config)
 y_updated, modelStats = emiDriver.run(numClasses=NUM_OUTPUT, x_train=x_train,
                                       y_train=y_train, bag_train=BAG_TRAIN,
                                       x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
@@ -211,6 +225,13 @@ for val in modelStats:
     bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
     print("Round: %2d, Validation accuracy: %.4f" % (round_, acc), end='')
     print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
+
+    # Print confusion matrix
+    print('\n')
+    bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
+    utils.printFormattedConfusionMatrix(bagcmatrix)
+    print('\n')
+
     mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
     emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
     total_savings = mi_savings + (1 - mi_savings) * emi_savings
