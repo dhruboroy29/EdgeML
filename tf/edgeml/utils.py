@@ -8,6 +8,21 @@ import scipy.cluster
 import scipy.spatial
 import os
 
+def getModelSize(full_path_meta):
+    tf.reset_default_graph()
+    sum = 0
+    with tf.Session() as sess2:
+        # Restore model
+        saver = tf.train.import_meta_graph(full_path_meta)
+        saver.restore(sess2, os.path.splitext(full_path_meta)[0])
+
+        # Get size
+        for g in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
+            sum += sess2.run(tf.size(g))
+
+    print("Model size in float32:", sum * 4 / 10 ** 3, "KB")
+    print("Model size in Q15:", sum * 2 / 10 ** 3, "KB")
+
 
 def medianHeuristic(data, projectionDimension, numPrototypes, W_init=None):
     '''
