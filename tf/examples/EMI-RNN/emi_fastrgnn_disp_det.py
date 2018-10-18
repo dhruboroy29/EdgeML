@@ -218,6 +218,7 @@ df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 devnull = open(os.devnull, 'r')
 for val in modelStats:
     round_, acc, modelPrefix, globalStep = val
+
     emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
     predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
@@ -231,6 +232,10 @@ for val in modelStats:
     bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
     utils.printFormattedConfusionMatrix(bagcmatrix)
     print('\n')
+
+    # Print model size
+    metaname = modelPrefix + '-%d.meta' % globalStep
+    utils.getModelSize(metaname)
 
     mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
     emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
