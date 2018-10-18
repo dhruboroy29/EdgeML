@@ -62,7 +62,7 @@ x_test = x_test / std
 x_test = np.reshape(x_test, [-1, timesteps, feats])
 
 # one-hot encoding of labels
-numOutput = 2
+numOutput = 3
 y_train = one_hot(y_train, numOutput)
 y_val = one_hot(y_val, numOutput)
 y_test = one_hot(y_test, numOutput)
