@@ -220,6 +220,10 @@ for val in modelStats:
     utils.printFormattedConfusionMatrix(bagcmatrix)
     print('\n')
 
+    # Print model size
+    metaname = modelPrefix + '-%d.meta' % globalStep
+    utils.getModelSize(metaname)
+    
     mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
     emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
     total_savings = mi_savings + (1 - mi_savings) * emi_savings
