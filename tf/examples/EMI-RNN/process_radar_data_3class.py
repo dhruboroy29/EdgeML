@@ -71,7 +71,7 @@ y_test = one_hot(y_test, numOutput)
 # Create EMI data
 subinstanceLen = args.l #48
 subinstanceStride = args.s #16
-outDir = extractedDir + '/%d_%d/' % (subinstanceLen, subinstanceStride)
+outDir = extractedDir + '/3class_%d_%d/' % (subinstanceLen, subinstanceStride)
 
 print('subinstanceLen', subinstanceLen)
 print('subinstanceStride', subinstanceStride)
