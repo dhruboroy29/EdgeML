@@ -78,16 +78,11 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
     print('All done!')
 
-
-
-
-
-# Test file
+# Test
+'''
 extract_windows(indirs='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/FastGRNN/Data/Austere/Noise',
                 outdir='/home/Roy.174/Desktop/Test',
                 class_label='Noise_Python',
                 stride=171,
-                winlen=256
-                )
-
-
+                winlen=256)
+'''
