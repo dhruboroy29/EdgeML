@@ -72,7 +72,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
                                            cur_file_name + '_' + str(k1 + 1) + '_to_' + str(k1 + winlen + 1) + '.data')
 
                 # Save to output file
-                Data_cut.tofile(outfilename, )
+                Data_cut.tofile(outfilename)
 
     print('All done!')
 
