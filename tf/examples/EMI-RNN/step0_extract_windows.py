@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import glob
-
+from helpermethods import Data2IQ
 
 def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, minlen_secs=1):
     """
@@ -40,11 +40,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
             cur_file_name = os.path.basename(os.path.splitext(cur_file)[0])
 
             # Read IQ samples
-            comp = np.fromfile(cur_file, dtype=np.uint16)
-            I = comp[::2]
-            Q = comp[1::2]
-            assert len(I) == len(Q)
-            L = len(I)
+            I,Q,L = Data2IQ(cur_file)
             cur_walk_secs = L / samprate
 
             # Print data column-wise
