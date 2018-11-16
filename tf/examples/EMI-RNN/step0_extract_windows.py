@@ -2,8 +2,10 @@ import numpy as np
 import os
 import glob
 
+
 def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, minlen_secs=1):
     """
+    Ref: https://github.com/dhruboroy29/MATLAB_Scripts/blob/neel/Scripts/extract_target_windows.m
     Extract sliding windows out of input data
     :param samprate: sampling rate
     :param indirs: input directory list of data
