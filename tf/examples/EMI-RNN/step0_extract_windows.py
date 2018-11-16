@@ -30,15 +30,14 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
     for indir in indirs:
         assert isinstance(indir, str)
-        os.chdir(indir)
 
         # Find data files
-        list_files = glob.glob('*.data')
+        list_files = glob.glob(os.path.join(indir,'*.data'))
 
         max_walk_secs = 0
         for cur_file in list_files:
             # Get filename without extension
-            cur_file_name = os.path.splitext(cur_file)[0]
+            cur_file_name = os.path.basename(os.path.splitext(cur_file)[0])
 
             # Read IQ samples
             comp = np.fromfile(cur_file, dtype=np.uint16)
