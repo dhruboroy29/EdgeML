@@ -28,13 +28,15 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
     # Silently create output directory if it doesn't exist
     os.makedirs(outdir, exist_ok=True)
 
+    # Initialize cut length list to print statistics
+    walk_length_stats = []
+
     for indir in indirs:
         assert isinstance(indir, str)
 
         # Find data files
         list_files = glob.glob(os.path.join(indir,'*.data'))
 
-        max_walk_secs = 0
         for cur_file in list_files:
             # Get filename without extension
             cur_file_name = os.path.basename(os.path.splitext(cur_file)[0])
@@ -50,9 +52,8 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
             if cur_walk_secs < minlen_secs:
                 continue
 
-            # Get max walklength encountered so far
-            if cur_walk_secs > max_walk_secs:
-                max_walk_secs = cur_walk_secs
+            # Append current walk length to stats array
+            walk_length_stats.append(cur_walk_secs)
 
             # Extract windows
             for k1 in range(0, L - winlen, stride):
