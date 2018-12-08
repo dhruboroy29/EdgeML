@@ -85,6 +85,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
         wr.writerow(walk_length_stats)
 
     # Print walk statistics
+    print('Number of cuts: ', len(walk_length_stats))
     print('Min cut length (s): ', min(walk_length_stats))
     print('Max cut length (s): ', max(walk_length_stats))
     print('Avg cut length (s): ', np.mean(walk_length_stats))
