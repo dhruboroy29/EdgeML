@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import glob
+import csv
 from helpermethods import Data2IQ
 
 def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, minlen_secs=1):
@@ -22,6 +23,9 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
     # If single directory given, create list
     if isinstance(indirs, str):
         indirs = [indirs]
+
+    # Path to save walk length array as .csv
+    walk_length_stats_savepath = os.path.join(outdir,'walk_length_stats.csv')
 
     # Make output directory
     outdir = os.path.join(outdir, 'winlen_' + str(winlen) + '_stride_' + str(stride), class_label)
@@ -74,6 +78,11 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
                 # Save to output file
                 Data_cut.tofile(outfilename)
+
+    # Print walk list to csv file (for CDF computation, etc)
+    with open(walk_length_stats_savepath, 'a', newline='') as myfile:
+        wr = csv.writer(myfile, quoting=csv.QUOTE_NONE)
+        wr.writerow(walk_length_stats)
 
     # Print walk statistics
     print('Min cut length (s): ', min(walk_length_stats))
