@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import edgeml.utils as utils
 import time
+import csv
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../../')
@@ -212,7 +213,14 @@ print('Total Savings: %f' % (total_savings))
 
 
 # A slightly more detailed analysis method is provided.
-df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
+#df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
+
+# Write model stats file
+with open(os.path.join(data_dir,'ur file.csv'),'w') as out:
+    csv_out=csv.writer(out)
+    csv_out.writerow(['name','num'])
+    for row in modelStats:
+        csv_out.writerow(row)
 
 # Pick the best model
 devnull = open(os.devnull, 'r')
