@@ -216,7 +216,7 @@ print('Total Savings: %f' % (total_savings))
 #df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Write model stats file
-with open(os.path.join(data_dir,'ur file.csv'),'w') as out:
+with open(os.path.join(data_dir,'modelstats.csv'),'w') as out:
     csv_out=csv.writer(out)
     csv_out.writerow(['name','num'])
     for row in modelStats:
