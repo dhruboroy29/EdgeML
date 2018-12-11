@@ -99,29 +99,32 @@ if __name__=='__main__':
     # New cuts
     austere_base_folder = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/' \
                           'Austere/Bora_New_Detector/' \
-                          'Bora_new_det_aust_th_22_bgr_19_M_30_N_128_window_res_lookahead_last_wind_padded'
+                          'Bora_new_det_aust_th_22_bgr_19_M_30_N_128_window_res_lookahead_last_wind_padded/'
     extract_windows(indirs=[
-        austere_base_folder + 'austere_386_human',
-        austere_base_folder + 'austere_310_cow'],
-                    outdir='/home/Roy.174/Desktop/Test',
-                    class_label='Target_Python',
+        austere_base_folder + 'austere_384_human',
+        austere_base_folder + 'austere_304_cow'],
+                    outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+                           'Deep_Learning_Radar/Displacement_Detection/Data/Austere/Bora_New_Detector/',
+                    class_label='Target',
                     stride=128,
-                    winlen=512)
+                    winlen=384)
 
     # Old cuts
     '''austere_base_folder = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Old_Detector/'
     extract_windows(indirs=[
         austere_base_folder + 'Austere_322_human',
         austere_base_folder + 'Austere_255_non_humans'],
-        outdir='/home/Roy.174/Desktop/Test',
-        class_label='Target_Python',
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/
+        Deep_Learning_Radar/Displacement_Detection/Data/Austere/Old_Detector/',
+        class_label='Target',
         stride=128,
         winlen=512)'''
 
     print('----------------Noise----------------')
     austere_noise_base = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/'
     extract_windows(indirs=austere_noise_base + 'Noise',
-                    outdir='/home/Roy.174/Desktop/Test',
-                    class_label='Noise_Python',
+                    outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+                           'Deep_Learning_Radar/Displacement_Detection/Data/Austere/Bora_New_Detector/',
+                    class_label='Noise',
                     stride=128,
-                    winlen=512)
+                    winlen=384)

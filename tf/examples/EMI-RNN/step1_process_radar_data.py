@@ -17,7 +17,7 @@ args = parser.parse_args()
 
 extractedDir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/' \
                 #'Data/Austere_subset_features/Raw_winlen_256_stride_171'
-target_path = os.path.join(extractedDir, 'Targets')
+target_path = os.path.join(extractedDir, 'Target')
 noise_path = os.path.join(extractedDir, 'Noise')
 
 targets_data = ReadRadarWindows(target_path)
