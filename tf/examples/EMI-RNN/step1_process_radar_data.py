@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='HyperParameters for EMI-LSTM')
 parser.add_argument('-Dat', type=str, help='Directory containing fixed-length windowed data')
 parser.add_argument('-l', type=int, default=48, help='Sub-instance length')
 parser.add_argument('-s', type=int, default=16, help='Sub-instance stride length')
-parser.add_argument('-spl', type=float, default=0.1, help='Validation/test split')
+parser.add_argument('-spl', type=float, default=0.2, help='Validation/test split')
 
 args = parser.parse_args()
 
