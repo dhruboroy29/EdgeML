@@ -95,7 +95,61 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
 # Test
 if __name__=='__main__':
-    print('----------------Targets----------------')
+    '''print('----------------Human BumbleBee Targets----------------')
+    # Bumblebee human cuts
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/arc_1/Human',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/prb_2/Human',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/Parking garage radial ortho (Sandeep)/SenSys10_data_scripts/data/0-amplitude (walks)/ortho/cut',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/Parking garage radial ortho (Sandeep)/SenSys10_data_scripts/data/0-amplitude (walks)/radial/runs/cut',
+        ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+               'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
+        class_label='Target',
+        stride=128,
+        winlen=384)
+
+    print('----------------Ball BumbleBee Targets----------------')
+    # Bumblebee dog cuts
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/arc_1/Dog',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/prb_2/Dog',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/kh_3/Dog',
+    ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+               'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
+        class_label='Target',
+        stride=128,
+        winlen=384)
+
+    print('----------------Car BumbleBee Targets----------------')
+    # Bumblebee car cuts
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/bv_4/Dog',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/5-15-2011/Dog',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/5-16-2011/Dog',
+    ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+               'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
+        class_label='Target',
+        stride=128,
+        winlen=384)
+
+    print('----------------BumbleBee Noise----------------')
+    # Bumblebee noise
+    bb_noise_base = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/'
+    extract_windows(indirs=bb_noise_base + 'Noise',
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+               'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
+        class_label='Noise',
+        stride=128,
+        winlen=384)
+    exit()'''
+
+    print('----------------Austere Targets----------------')
     # New cuts
     austere_base_folder = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/' \
                           'Austere/Bora_New_Detector/' \
@@ -120,7 +174,7 @@ if __name__=='__main__':
         stride=128,
         winlen=512)'''
 
-    print('----------------Noise----------------')
+    print('----------------Austere Noise----------------')
     austere_noise_base = '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/'
     extract_windows(indirs=austere_noise_base + 'Noise',
                     outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
