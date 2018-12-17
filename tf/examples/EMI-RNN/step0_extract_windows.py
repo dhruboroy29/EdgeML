@@ -95,7 +95,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
 # Test
 if __name__=='__main__':
-    '''print('----------------Human BumbleBee Targets----------------')
+    print('----------------Human BumbleBee Targets----------------')
     # Bumblebee human cuts
     extract_windows(indirs=[
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Robust_Learning/Data_Repository/IPSNdata/arc_1/Human',
@@ -147,7 +147,7 @@ if __name__=='__main__':
         class_label='Noise',
         stride=128,
         winlen=384)
-    exit()'''
+    exit()
 
     print('----------------Austere Targets----------------')
     # New cuts
