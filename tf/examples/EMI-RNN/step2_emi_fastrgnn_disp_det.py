@@ -8,7 +8,7 @@ import time
 import csv
 
 # Making sure edgeml is part of python path
-sys.path.insert(0, '../../')
+sys.path.insert(0, 'tf/')
 os.environ['CUDA_VISIBLE_DEVICES'] ='0'
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
