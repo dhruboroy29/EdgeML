@@ -4,11 +4,16 @@ function bargraph_recall_k(filename)
 m=dlmread(filename);
 
 % Plot bar graph
-bar(m(:,2:3));
+bar(m(:,2:end));
 
 h = gca;
-legend({'Noise','Target'},'interpreter','latex', 'FontSize', 20);
-ylim([0.86 1.0]);
+if size(m,2)==3
+    legend({'Noise','Target'},'interpreter','latex', 'FontSize', 20);
+    ylim([0.8 1.0]);
+elseif size(m,2)==4
+    legend({'Noise','Human','Non-human'},'interpreter','latex', 'FontSize', 20);
+    ylim([0.5 1.0]);
+end
 
 h.XLabel.String = 'k';
 h.YLabel.String = 'Recall';
@@ -16,5 +21,7 @@ h.XLabel.Interpreter='latex';
 h.YLabel.Interpreter='latex';
 h.XLabel.FontSize = 20;
 h.YLabel.FontSize = 20;
+h.FontSize = 20;
+h.TickLabelInterpreter='latex';
 
 saveas(h,strrep(filename,'.txt','.eps'),'eps2c');
