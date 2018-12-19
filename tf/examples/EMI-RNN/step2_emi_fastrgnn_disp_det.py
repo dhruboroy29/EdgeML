@@ -4,7 +4,6 @@ import sys
 import tensorflow as tf
 import numpy as np
 import argparse
-import edgeml.utils as utils
 import time
 import csv
 
@@ -18,6 +17,7 @@ np.random.seed(42)
 tf.set_random_seed(42)
 
 # FastGRNN and FastRNN imports
+import edgeml.utils as utils
 from edgeml.graph.rnn import EMI_DataPipeline
 from edgeml.graph.rnn import EMI_FastGRNN
 from edgeml.graph.rnn import EMI_FastRNN
