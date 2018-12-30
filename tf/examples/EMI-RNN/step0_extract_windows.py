@@ -95,6 +95,26 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
 # Test
 if __name__=='__main__':
+    print('----------------Austere Human Activity----------------')
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Activity/austere_468_human'
+    ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/',
+        class_label='Human',
+        stride=128,
+        winlen=384)
+    print('----------------Austere Radial Bike Activity----------------')
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Activity/Bike_485_radial'
+    ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/',
+        class_label='Bike',
+        stride=128,
+        winlen=384)
+    exit()
+
     print('----------------Human BumbleBee Targets----------------')
     # Bumblebee human cuts
     extract_windows(indirs=[
