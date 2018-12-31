@@ -100,7 +100,30 @@ if __name__=='__main__':
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Activity/austere_468_human'
     ],
 
-        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/',
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/'
+               'TimeFreqRNN/Data/Austere/Activity/All/',
+        class_label='Human',
+        stride=128,
+        winlen=384)
+    print('----------------Austere Bike Activity----------------')
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Activity/Bike_558'
+    ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+               'Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/All/',
+        class_label='Bike',
+        stride=128,
+        winlen=384)
+    exit()
+
+    print('----------------Austere Human Activity----------------')
+    extract_windows(indirs=[
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Activity/austere_468_human'
+    ],
+
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/'
+               'TimeFreqRNN/Data/Austere/Activity/Radial_Bikes/',
         class_label='Human',
         stride=128,
         winlen=384)
@@ -109,7 +132,8 @@ if __name__=='__main__':
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/Activity/Bike_485_radial'
     ],
 
-        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/',
+        outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
+               'Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/Radial_Bikes/',
         class_label='Bike',
         stride=128,
         winlen=384)
