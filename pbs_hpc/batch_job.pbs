@@ -1,0 +1,11 @@
+#PBS -l nodes=2:ppn=28:gpus=1:default
+#PBS -j oe
+#PBS -A PAS1090
+#PBS -m f
+#PBS -S /bin/bash
+
+cd ${PBS_O_WORKDIR}
+echo "FILENAME: " ${filename}
+source activate tfgpu
+module load cuda/9.0.176
+bash ${filename}
