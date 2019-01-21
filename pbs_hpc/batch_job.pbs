@@ -5,7 +5,8 @@
 #PBS -S /bin/bash
 
 cd ${PBS_O_WORKDIR}
-echo "FILENAME: " ${filename}
+pwd
 source activate tfgpu
 module load cuda/9.0.176
-bash ${filename}
+echo "python ../tf/examples/EMI-RNN/step2_emi_fastrgnn_disp_det.py -Dat $Dat -O $O -ots $ots -k $k -ep $ep -it $it -rnd $rnd"
+python ../tf/examples/EMI-RNN/step2_emi_fastrgnn_disp_det.py -Dat $Dat -O $O -ots $ots -k $k -ep $ep -it $it -rnd $rnd
