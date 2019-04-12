@@ -2,6 +2,7 @@ import numpy as np
 import os
 import glob
 import csv
+import shutil
 from helpermethods import Data2IQ
 
 def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, minlen_secs=1):
@@ -19,6 +20,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
     assert isinstance(indirs, (str, list))
     assert isinstance(outdir, str)
+    assert stride == winlen
 
     # If single directory given, create list
     if isinstance(indirs, str):
@@ -26,6 +28,10 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
     # Path to save walk length array as .csv
     walk_length_stats_savepath = os.path.join(outdir,'walk_length_stats.csv')
+
+    # Silently delete directory if it exists
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
 
     # Make output directory
     outdir = os.path.join(outdir, 'winlen_' + str(winlen) + '_stride_' + str(stride), class_label)
@@ -60,7 +66,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
             walk_length_stats.append(cur_walk_secs)
 
             # Extract windows
-            for k1 in range(0, L - winlen, stride):
+            for k1 in range(0, L - winlen+1, stride):
                 temp_I = I[k1:k1 + winlen]
                 temp_Q = Q[k1:k1 + winlen]
 
@@ -73,8 +79,16 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
                 # print(*Data_cut.astype(int), sep='\n')
 
                 # Output filenames follow MATLAB array indexing convention
-                outfilename = os.path.join(outdir,
-                                           cur_file_name + '_' + str(k1 + 1) + '_to_' + str(k1 + winlen) + '.data')
+                # Output filenames follow MATLAB array indexing convention
+                uniqueoutfilename = os.path.join(outdir,
+                                                 cur_file_name + '_' + str(k1 + 1) + '_to_' + str(k1 + winlen))
+
+                # Save to output file
+                outfilename = uniqueoutfilename + '.data'
+                uniq = 1
+                while os.path.exists(outfilename):
+                    outfilename = uniqueoutfilename + ' (' + str(uniq) + ').data'
+                    uniq += 1
 
                 # Save to output file
                 Data_cut.tofile(outfilename)
@@ -112,7 +126,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------Non-human BumbleBee Targets----------------')
@@ -132,7 +146,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------BumbleBee Noise----------------')
@@ -142,7 +156,7 @@ if __name__=='__main__':
                     outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                            'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
                     class_label='Noise',
-                    stride=128,
+                    stride=384,
                     winlen=384)
     exit()
 
@@ -154,7 +168,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/'
                'TimeFreqRNN/Data/Austere/Activity/All/',
         class_label='Human',
-        stride=128,
+        stride=384,
         winlen=384)
     print('----------------Austere Bike Activity----------------')
     extract_windows(indirs=[
@@ -164,7 +178,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/All/',
         class_label='Bike',
-        stride=128,
+        stride=384,
         winlen=384)
     exit()
 
@@ -176,7 +190,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/'
                'TimeFreqRNN/Data/Austere/Activity/Radial_Bikes/',
         class_label='Human',
-        stride=128,
+        stride=384,
         winlen=384)
     print('----------------Austere Radial Bike Activity----------------')
     extract_windows(indirs=[
@@ -186,7 +200,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/TimeFreqRNN/Data/Austere/Activity/Radial_Bikes/',
         class_label='Bike',
-        stride=128,
+        stride=384,
         winlen=384)
     exit()
 
@@ -202,7 +216,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------Ball BumbleBee Targets----------------')
@@ -216,7 +230,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------Car BumbleBee Targets----------------')
@@ -230,7 +244,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------BumbleBee Noise----------------')
@@ -240,7 +254,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Noise',
-        stride=128,
+        stride=384,
         winlen=384)
     exit()
 
@@ -255,7 +269,7 @@ if __name__=='__main__':
                     outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                            'Deep_Learning_Radar/Displacement_Detection/Data/Austere/Bora_New_Detector/',
                     class_label='Target',
-                    stride=128,
+                    stride=384,
                     winlen=384)
 
     # Old cuts
@@ -275,5 +289,5 @@ if __name__=='__main__':
                     outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                            'Deep_Learning_Radar/Displacement_Detection/Data/Austere/Bora_New_Detector/',
                     class_label='Noise',
-                    stride=128,
+                    stride=384,
                     winlen=384)
