@@ -225,29 +225,33 @@ with open(os.path.join(data_dir,'modelstats.csv'),'w') as out:
 
 # Pick the best model
 devnull = open(os.devnull, 'r')
+acc = 0.0
+
 for val in modelStats:
-    round_, acc, modelPrefix, globalStep = val
+    c_round_, c_acc, c_modelPrefix, c_globalStep = val
+    if c_acc > acc:
+        round_, acc, modelPrefix, globalStep = c_round_, c_acc, c_modelPrefix, c_globalStep
 
-    emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
-    predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
-                                                               minProb=0.99, keep_prob=1.0)
+emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
+                                                           minProb=0.99, keep_prob=1.0)
 
-    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
-    print("Round: %2d, Validation accuracy: %.4f" % (round_, acc), end='')
-    print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
+bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
+print("Round: %2d, Validation accuracy: %.4f" % (round_, acc), end='')
+print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
 
-    # Print confusion matrix
-    print('\n')
-    bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
-    utils.printFormattedConfusionMatrix(bagcmatrix)
-    print('\n')
+# Print confusion matrix
+print('\n')
+bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
+utils.printFormattedConfusionMatrix(bagcmatrix)
+print('\n')
 
-    # Print model size
-    metaname = modelPrefix + '-%d.meta' % globalStep
-    utils.getModelSize(metaname)
+# Print model size
+metaname = modelPrefix + '-%d.meta' % globalStep
+utils.getModelSize(metaname)
 
-    mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
-    emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-    total_savings = mi_savings + (1 - mi_savings) * emi_savings
-    print('Additional savings: %f' % emi_savings)
-    print("Total Savings: %f" % total_savings)
+mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
+total_savings = mi_savings + (1 - mi_savings) * emi_savings
+print('Additional savings: %f' % emi_savings)
+print("Total Savings: %f" % total_savings)
