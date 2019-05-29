@@ -26,7 +26,7 @@ from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
 import edgeml.utils
 
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-FastGRNN')
-parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances')
+parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances. 100 for max possible')
 parser.add_argument('-H', type=int, default=16, help='Number of hidden units')
 parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
@@ -112,6 +112,10 @@ print("x_train shape is:", x_train.shape)
 print("y_train shape is:", y_train.shape)
 print("x_test shape is:", x_val.shape)
 print("y_test shape is:", y_val.shape)
+
+# Adjustment for max k: number of subinstances
+if k==100:
+    k = x_train.shape[1]
 
 
 # Define the linear secondary classifier
@@ -237,7 +241,7 @@ predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, e
                                                            minProb=0.99, keep_prob=1.0)
 
 bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
-print("Round: %2d, Validation accuracy: %.4f" % (round_, acc), end='')
+print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
 
 # Print confusion matrix
