@@ -15,5 +15,5 @@ outfile="$dir/recall_$file.txt"
 echo $outfile
 
 echo "Saving output to: "$outfile
-ls -1v $1*.log | xargs -d '\n' grep -A20 "Round:  9, Validation accuracy:" | grep Recall\
+ls -1v $1*.log | xargs -d '\n' grep -E -A 20 -B 10 "Round:  [0-9], Validation accuracy:" | grep Recall\
     | awk -F'=' '{print $2}' | awk -F'[.]log[-]' '{print $1$2}' | awk -F'|' '{print $1"\t"$3"\t"$4}' | tee $outfile
