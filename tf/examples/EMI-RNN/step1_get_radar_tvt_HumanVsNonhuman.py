@@ -19,10 +19,10 @@ def getRadarData(path):
     #noise_label = np.array([0] * len(noise_data))
 
     humans_data = ReadRadarWindows(os.path.join(path, 'Human'))
-    humans_label = np.array([1] * len(humans_data))
+    humans_label = np.array([0] * len(humans_data))
 
     nonhumans_data = ReadRadarWindows(os.path.join(path, 'Nonhuman'))
-    nonhumans_label = np.array([2] * len(nonhumans_data))
+    nonhumans_label = np.array([1] * len(nonhumans_data))
 
     #X = np.concatenate([humans_data, nonhumans_data, noise_data])
     X = np.concatenate([humans_data, nonhumans_data])
@@ -86,7 +86,7 @@ for dir in list_dirs:
     x_test = np.reshape(x_test, [-1, timesteps, feats])
 
     # one-hot encoding of labels
-    numOutput = 3
+    numOutput = 2
     y_train = one_hot(y_train, numOutput)
     y_val = one_hot(y_val, numOutput)
     y_test = one_hot(y_test, numOutput)
