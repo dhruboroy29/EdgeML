@@ -86,9 +86,9 @@ NUM_ROUNDS = args.rnd #10
 data_dir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
            #'Raw_winlen_256_stride_171/48_16/'
 
-x_train, y_train = np.load(os.path.join(data_dir,'x_train.npy')), np.load(os.path.join(data_dir,'y_train.npy'))
-x_test, y_test = np.load(os.path.join(data_dir,'x_test.npy')), np.load(os.path.join(data_dir,'y_test.npy'))
-x_val, y_val = np.load(os.path.join(data_dir,'x_val.npy')), np.load(os.path.join(data_dir,'y_val.npy'))
+x_train, y_train = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_train.npy')), np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_train.npy'))
+x_test, y_test = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_test.npy')), np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_test.npy'))
+x_val, y_val = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_val.npy')), np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_val.npy'))
 
 # BAG_TEST, BAG_TRAIN, BAG_VAL represent bag_level labels. These are used for the label update
 # step of EMI/MI RNN
@@ -161,7 +161,8 @@ devnull = open(os.devnull, 'r')
 acc = 0.0
 
 # Write model stats file
-with open(os.path.join(data_dir,'modelstats.csv'),'r') as stats_csv:
+with open(os.path.join(data_dir,'48_16','modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) + '.csv'),'r') as stats_csv:
     modelStats = csv.reader(stats_csv)
     header = next(modelStats)
     for row in modelStats:
@@ -173,23 +174,34 @@ print('Best Model Global Step: ', globalStep)
 
 graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 
+# Generate embeddings folder
+embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','embedding_H=' + str(NUM_HIDDEN) +
+                             '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS) + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS))
+os.makedirs(embedding_dir, exist_ok=True)
+
 # Get embeddings of Train data
-print('Generating embeddings for X_Train............')
-train_emb_output_path = os.path.join(data_dir,'embedding_train.npy')
+print('Generating embeddings for X_train............')
+train_emb_output_path = os.path.join(embedding_dir,'embedding_train.npy')
 train_embeddings = emiDriver.getInstanceEmbeddings(graph, x_train, y_train)
 np.save(train_emb_output_path, train_embeddings)
+# Save labels (convert back from one-hot)
+np.save(os.path.join(embedding_dir,'embedding_train_lbls.npy'), np.amax(np.argmax(y_train, axis=2), axis=1))
 
 # Get embeddings of Test data
 print('Generating embeddings for X_test.............')
-test_emb_output_path = os.path.join(data_dir,'embedding_test.npy')
+test_emb_output_path = os.path.join(embedding_dir,'embedding_test.npy')
 test_embeddings = emiDriver.getInstanceEmbeddings(graph, x_test, y_test)
 np.save(test_emb_output_path, test_embeddings)
+# Save labels (convert back from one-hot)
+np.save(os.path.join(embedding_dir,'embedding_test_lbls.npy'), np.amax(np.argmax(y_test, axis=2), axis=1))
 
 # Get embeddings of Val data
 print('Generating embeddings for X_val..............')
-val_emb_output_path = os.path.join(data_dir,'embedding_val.npy')
+val_emb_output_path = os.path.join(embedding_dir,'embedding_val.npy')
 val_embeddings = emiDriver.getInstanceEmbeddings(graph, x_val, y_val)
 np.save(val_emb_output_path, val_embeddings)
+# Save labels (convert back from one-hot)
+np.save(os.path.join(embedding_dir,'embedding_val_lbls.npy'), np.amax(np.argmax(y_val, axis=2), axis=1))
 
 print('Embedding Generation Complete!')
 
