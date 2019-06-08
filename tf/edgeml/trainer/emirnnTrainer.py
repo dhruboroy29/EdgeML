@@ -717,6 +717,53 @@ class EMI_Driver:
                   (df['rec_01'].values[idx], idx + 1), file=redirFile)
         return df
 
+
+    # Added by Sangeeta
+    def getInstanceEmbeddings(self, graph, x, y, batchSize=1024, feedDict=None, **kwargs):
+        
+        '''
+        Returns instance level embeddings for data x.
+       
+        '''
+        sess = self.__sess
+        EMI_RNN_Scope = self._emiGraph._scope
+
+        # Get the bag-output tensor from EMI_RNN_Scope
+        embedding_tensor =  graph.get_tensor_by_name(EMI_RNN_Scope + 'bag-output:0')
+
+        last_timestep_idx = self._emiTrainer.numTimeSteps - 1
+
+        # Get the embedding of the last timestep of RNN Cell
+        #embedding_last_timestep = tf.slice(embedding_tensor, [0, 0, last_timestep_idx, 0], [-1, -1, -1, -1])
+        embedding_last_timestep = embedding_tensor[:, :, last_timestep_idx, :]
+
+        # Reshape the output to produce bag-level embedding
+        bag_embedding_length = self._emiGraph.numSubinstance * self._emiGraph.numHidden
+        embeddingOp = tf.reshape(embedding_last_timestep, [-1, bag_embedding_length], name='embedding')
+
+        if feedDict is None:
+            feedDict = self.feedDictFunc(**kwargs)
+        
+        self._dataPipe.runInitializer(sess, x, y, batchSize, numEpochs=1)
+
+        beginIdx = 0
+        embeddings = np.empty([x.shape[0], bag_embedding_length])
+        
+        while True:
+            try:
+                embList = sess.run(embeddingOp, feed_dict=feedDict)
+                endIdx = beginIdx + embList.shape[0]
+                embeddings[beginIdx:endIdx, :] = embList
+                beginIdx = endIdx
+
+            except tf.errors.OutOfRangeError:
+                break
+
+        assert x.shape[0] == embeddings.shape[0]
+        print('Embeddings Shape: ',embeddings.shape)
+        return embeddings
+ 
+
     def getInstancePredictions(self, x, y, earlyPolicy, batchSize=1024,
                                feedDict=None, **kwargs):
 

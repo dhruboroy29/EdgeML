@@ -1300,8 +1300,9 @@ class EMI_FastGRNN(EMI_RNN):
                 wrapped_cell = tf.contrib.rnn.DropoutWrapper(cell,
                                                              input_keep_prob=keep_prob,
                                                              output_keep_prob=keep_prob)
-            outputs__, states = tf.nn.static_rnn(
-                wrapped_cell, x, dtype=tf.float32)
+            outputs__, states = tf.nn.static_rnn(wrapped_cell, 
+                                                 x, 
+                                                 dtype=tf.float32)
             outputs = []
             for output in outputs__:
                 outputs.append(tf.expand_dims(output, axis=1))
