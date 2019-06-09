@@ -129,14 +129,6 @@ upperFastGRNN = FastGRNNCell(NUM_HIDDEN_SECONDTIER, wRank=WRANK, uRank=URANK,
 
 # Define the linear secondary classifier - This incorporates upper FastGRNN
 def createExtendedGraph(self, baseOutput, *args, **kwargs):
-    def RNN(x, timeSteps, FastObj):
-        '''
-        Unroll, return final hidden state
-        '''
-        x = tf.unstack(x, timeSteps, 1)
-        outputs, states = tf.nn.static_rnn(FastObj, x, dtype=tf.float32)
-        return outputs[-1]
-
     # Get EMI output
     W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, NUM_OUTPUT]).astype('float32'), name='W1')
     B1 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B1')
@@ -144,8 +136,13 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
 
     # Get EMI embeddings
     emiEmbeddings = baseOutput[:, :, -1, :]
-    secondtier = RNN(emiEmbeddings, np.shape(emiEmbeddings)[1],upperFastGRNN)
 
+    # Unroll for second tier, get final hidden state
+    x = tf.unstack(emiEmbeddings, np.shape(emiEmbeddings)[1], 1)
+    outputs, states = tf.nn.static_rnn(upperFastGRNN, x, dtype=tf.float32)
+    secondtier=outputs[-1]
+
+    # Get second-tier output
     W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT_SECONDTIER]).astype('float32'), name='W2')
     B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT_SECONDTIER]).astype('float32'), name='B2')
     y_cap_upper = tf.add(tf.tensordot(secondtier, W1, axes=1), B1, name='y_cap_upper')
