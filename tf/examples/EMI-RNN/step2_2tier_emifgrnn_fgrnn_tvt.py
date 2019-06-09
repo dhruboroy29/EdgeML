@@ -23,7 +23,7 @@ from edgeml.graph.rnn import EMI_DataPipeline
 from edgeml.graph.rnn import EMI_FastGRNN
 from edgeml.graph.rnn import FastGRNNCell
 from edgeml.trainer.fastTrainer import FastTrainer
-from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
+from edgeml.trainer.emirnnTrainer import EMI_Trainer_2Tier, EMI_Driver
 import edgeml.utils
 
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-FastGRNN')
@@ -149,7 +149,7 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
     W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT_SECONDTIER]).astype('float32'), name='W2')
     B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT_SECONDTIER]).astype('float32'), name='B2')
     y_cap_upper = tf.add(tf.tensordot(secondtier, W1, axes=1), B1, name='y_cap_upper')
-    self.output = y_cap
+    self.output = [y_cap, y_cap_upper]
     self.graphCreated = True
 
 
@@ -175,7 +175,7 @@ if USE_DROPOUT is True:
 inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
 emiFastGRNN = EMI_FastGRNN(NUM_SUBINSTANCE, NUM_HIDDEN, NUM_TIMESTEPS, NUM_FEATS, wRank=WRANK, uRank=URANK,
                            gate_non_linearity=GATE_NL, update_non_linearity=UPDATE_NL, useDropout=USE_DROPOUT)
-emiTrainer = EMI_Trainer(NUM_TIMESTEPS, NUM_OUTPUT, lossType='xentropy')
+emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, NUM_OUTPUT, lossType='xentropy')
 
 
 # Connect elementary parts together to create forward graph
@@ -185,13 +185,13 @@ with g1.as_default():
     # Obtain the iterators to each batch of the data
     x_batch, y_batch = inputPipeline()
     # Create the forward computation graph based on the iterators
-    y_cap = emiFastGRNN(x_batch)
+    y_cap, y_cap_upper = emiFastGRNN(x_batch)
     # Create loss graphs and training routines
-    emiTrainer(y_cap, y_batch)
+    emiTrainer2tier(y_cap, y_cap_upper, y_batch)
 
 
 with g1.as_default():
-    emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer)
+    emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
 
 emiDriver.initializeSession(g1, config=config)
 y_updated, modelStats = emiDriver.run(numClasses=NUM_OUTPUT, x_train=x_train,
