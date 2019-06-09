@@ -8,11 +8,13 @@ import sys
 import edgeml.utils as utils
 import pandas as pd
 
+
 class EMI_Trainer_2Tier:
-    def __init__(self, numTimeSteps, numOutput, graph=None,
+    def __init__(self, numTimeSteps, graph=None,
                  stepSize=0.001, lossType='l2', optimizer='Adam',
                  automode=True):
         '''
+        CHANGE: numOutput is hardcoded to 2
         The EMI-RNN trainer. This classes attaches loss functions and training
         operations to the forward EMI-RNN graph. Currently, simple softmax loss
         and l2 loss are supported on the outputs. For optimizers, only ADAM
@@ -48,7 +50,7 @@ class EMI_Trainer_2Tier:
         EMI-LSTM and so forth.
         '''
         self.numTimeSteps = numTimeSteps
-        self.numOutput = numOutput
+        self.numOutput = 2
         self.graph = graph
         self.stepSize = stepSize
         self.lossType = lossType
@@ -83,7 +85,7 @@ class EMI_Trainer_2Tier:
         assert target.shape[2] == self.numOutput
         self.__validInit = True
 
-    def __call__(self, predicted, predicted_upper, target):
+    def __call__(self, predicted, predicted_upper, target, target_upper):
         '''
         Constructs the loss and train operations. If already created, returns
         the created operators.
@@ -100,10 +102,11 @@ class EMI_Trainer_2Tier:
             assert self.lossOp is not None
             assert self.trainOp is not None
             return self.lossOp, self.trainOp
+
         self.__validateInit(predicted, target)
         assert self.__validInit is True
         if self.graph is None:
-            self._createGraph(predicted, predicted_upper, target)
+            self._createGraph(predicted, predicted_upper, target, target_upper)
         else:
             self._restoreGraph(predicted, predicted_upper, target)
         assert self.graphCreated == True
@@ -120,7 +123,7 @@ class EMI_Trainer_2Tier:
             A__ = tf.tile(A_, [1, 1, self.numTimeSteps, 1])
         return A__
 
-    def __createLossOp(self, predicted, predicted_upper, target):
+    def __createLossOp(self, predicted, predicted_upper, target, target_upper):
         assert self.__validInit is True, 'Initialization failure'
         with tf.name_scope(self.scope):
             # Loss indicator tensor
@@ -158,7 +161,7 @@ class EMI_Trainer_2Tier:
 
             # Add upper layer loss
             target_indicator = 1
-            lossOp_upper = target_indicator * utils.crossEntropyLoss(predicted_upper, target)
+            lossOp_upper = target_indicator * utils.crossEntropyLoss(predicted_upper, target_upper)
 
             lossOp = lossOp + lossOp_upper
         return lossOp
@@ -168,7 +171,7 @@ class EMI_Trainer_2Tier:
             tst = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp)
         return tst
 
-    def _createGraph(self, predicted, predicted_upper, target):
+    def _createGraph(self, predicted, predicted_upper, target, target_upper):
         target = self.__transformY(target)
         assert self.__validInit is True
         with tf.name_scope(self.scope):
@@ -184,7 +187,7 @@ class EMI_Trainer_2Tier:
             self.equalTilda = tf.cast(equal, tf.float32, name='equal-tilda')
             self.accTilda = tf.reduce_mean(self.equalTilda, name='acc-tilda')
 
-        self.lossOp = self.__createLossOp(predicted, predicted_upper, target)
+        self.lossOp = self.__createLossOp(predicted, predicted_upper, target, target_upper)
         self.trainOp = self.__createTrainOp()
         if self.automode:
             self.createOpCollections()

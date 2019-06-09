@@ -34,8 +34,8 @@ parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
 parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
-parser.add_argument('-O', type=int, default=2, help='Number of outputs')
-parser.add_argument('-O2', type=int, default=2, help='Number of outputs - second tier')
+parser.add_argument('-O', type=int, default=3, help='Number of outputs - all (#target types+noise)')
+parser.add_argument('-O2', type=int, default=2, help='Number of outputs - second tier (#target types)')
 parser.add_argument('-d', type=bool, default=False, help='Dropout?')
 parser.add_argument('-kp', type=float, default=0.9, help='Keep probability')
 parser.add_argument('-uN', type=str, default="quantTanh", help='Update nonlinearity')
@@ -110,8 +110,11 @@ x_val, y_val = np.load(os.path.join(data_dir,'x_val.npy')), np.load(os.path.join
 # BAG_TEST, BAG_TRAIN, BAG_VAL represent bag_level labels. These are used for the label update
 # step of EMI/MI RNN
 BAG_TEST = np.argmax(y_test[:, 0, :], axis=1)
+SUBINST_TEST = np.argmax(y_test, axis=2)
 BAG_TRAIN = np.argmax(y_train[:, 0, :], axis=1)
+SUBINST_TRAIN = np.argmax(y_train, axis=2)
 BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
+SUBINST_VAL = np.argmax(y_val, axis=2)
 NUM_SUBINSTANCE = x_train.shape[1]
 print("x_train shape is:", x_train.shape)
 print("y_train shape is:", y_train.shape)
@@ -129,9 +132,9 @@ upperFastGRNN = FastGRNNCell(NUM_HIDDEN_SECONDTIER, wRank=WRANK, uRank=URANK,
 
 # Define the linear secondary classifier - This incorporates upper FastGRNN
 def createExtendedGraph(self, baseOutput, *args, **kwargs):
-    # Get EMI output
-    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, NUM_OUTPUT]).astype('float32'), name='W1')
-    B1 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B1')
+    # Get EMI output - Target vs noise, so NUM_OUTPUT hardcoded as 2
+    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, 2]).astype('float32'), name='W1')
+    B1 = tf.Variable(np.random.normal(size=[2]).astype('float32'), name='B1')
     y_cap = tf.add(tf.tensordot(baseOutput, W1, axes=1), B1, name='y_cap_tata')
 
     # Get EMI embeddings
@@ -172,7 +175,7 @@ if USE_DROPOUT is True:
 inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
 emiFastGRNN = EMI_FastGRNN(NUM_SUBINSTANCE, NUM_HIDDEN, NUM_TIMESTEPS, NUM_FEATS, wRank=WRANK, uRank=URANK,
                            gate_non_linearity=GATE_NL, update_non_linearity=UPDATE_NL, useDropout=USE_DROPOUT)
-emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, NUM_OUTPUT, lossType='xentropy')
+emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, lossType='xentropy')
 
 
 # Connect elementary parts together to create forward graph
@@ -181,17 +184,33 @@ g1 = tf.Graph()
 with g1.as_default():
     # Obtain the iterators to each batch of the data
     x_batch, y_batch = inputPipeline()
+
+    '''Change instance outputs to 1-hot 2-class: Noise vs Target'''
+    # Deconvert instances from one-hot
+    y_batch_1hotdecoded = tf.argmax(y_batch, axis=2)
+    # Change all non zeros to target class 1 for EMI
+    mask = tf.greater(y_batch_1hotdecoded, tf.zeros_like(y_batch_1hotdecoded))
+    y_batch_lower = tf.cast(mask, tf.int32)
+    # Convert back to 2-class one-hot
+    y_batch_lower = tf.one_hot(y_batch_lower, depth=2, axis=-1)
+
+    '''Change bag outputs to 1-hot 3-class: Noise vs Human vs Nonhuman'''
+    # Get bag outputs from batch
+    y_batch_upper = tf.argmax(y_batch[:, 0, :], axis=1)
+    # Convert to one-hot
+    y_batch_upper = tf.one_hot(y_batch_upper, depth=3, axis=-1)
+
     # Create the forward computation graph based on the iterators
     y_cap, y_cap_upper = emiFastGRNN(x_batch)
     # Create loss graphs and training routines
-    emiTrainer2tier(y_cap, y_cap_upper, y_batch)
+    emiTrainer2tier(y_cap, y_cap_upper, y_batch_lower, y_batch_upper)
 
 
 with g1.as_default():
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
 
 emiDriver.initializeSession(g1, config=config)
-y_updated, modelStats = emiDriver.run(numClasses=NUM_OUTPUT, x_train=x_train,
+y_updated, modelStats = emiDriver.run(numClasses=2, x_train=x_train,
                                       y_train=y_train, bag_train=BAG_TRAIN,
                                       x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
                                       numIter=NUM_ITER, keep_prob=KEEP_PROB,
