@@ -174,7 +174,7 @@ if USE_DROPOUT is True:
 inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
 emiFastGRNN = EMI_FastGRNN(NUM_SUBINSTANCE, NUM_HIDDEN, NUM_TIMESTEPS, NUM_FEATS, wRank=WRANK, uRank=URANK,
                            gate_non_linearity=GATE_NL, update_non_linearity=UPDATE_NL, useDropout=USE_DROPOUT)
-emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, lossType='xentropy')
+emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, numOutputUpper=NUM_OUTPUT, lossType='xentropy')
 
 
 # Connect elementary parts together to create forward graph

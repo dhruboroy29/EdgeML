@@ -10,7 +10,7 @@ import pandas as pd
 
 
 class EMI_Trainer_2Tier:
-    def __init__(self, numTimeSteps, graph=None,
+    def __init__(self, numTimeSteps, numOutputUpper=3, graph=None,
                  stepSize=0.001, lossType='l2', optimizer='Adam',
                  automode=True):
         '''
@@ -50,7 +50,8 @@ class EMI_Trainer_2Tier:
         EMI-LSTM and so forth.
         '''
         self.numTimeSteps = numTimeSteps
-        self.numOutput = 2
+        self.numOutput = 2                      # Lower #outputs hardcoded: Target vs Noise
+        self.numOutputUpper = numOutputUpper    # Upper #outputs provided, default to 3 (Noise vs H vs NH)
         self.graph = graph
         self.stepSize = stepSize
         self.lossType = lossType
@@ -62,7 +63,9 @@ class EMI_Trainer_2Tier:
         self.lossOp = None
         self.trainOp = None
         self.softmaxPredictions = None
+        self.uppersoftmaxPredictions = None
         self.accTilda = None
+        self.accUpper = None
         self.equalTilda = None
         self.lossIndicatorTensor = None
         self.lossIndicatorPlaceholder = None
@@ -189,6 +192,12 @@ class EMI_Trainer_2Tier:
             equal = tf.equal(maxPred, maxActu)
             self.equalTilda = tf.cast(equal, tf.float32, name='equal-tilda')
             self.accTilda = tf.reduce_mean(self.equalTilda, name='acc-tilda')
+
+            # Adding inference for 2nd tier
+            self.uppersoftmaxPredictions = tf.nn.softmax(predicted_upper,
+                                                    name='upper-softmaxed-prediction')
+            batch_accUpper = tf.equal(tf.argmax(self.uppersoftmaxPredictions, axis=1), tf.argmax(target_upper, axis=1))
+            self.accUpper = tf.reduce_mean(tf.cast(batch_accUpper, tf.float32),  name='acc-upper')
 
         self.lossOp = self.__createLossOp(predicted, predicted_upper, target, target_upper)
         self.trainOp = self.__createTrainOp()
