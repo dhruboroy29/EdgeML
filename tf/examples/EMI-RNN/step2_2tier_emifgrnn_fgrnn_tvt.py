@@ -209,6 +209,7 @@ with g1.as_default():
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
 
 emiDriver.initializeSession(g1, config=config)
+print('NOTE: TRAINING TIME ACCURACIES SHOWN ARE EMI ONLY')
 y_updated, modelStats = emiDriver.run(numClasses=2, x_train=x_train,
                                       y_train=y_train, bag_train=BAG_TRAIN,
                                       x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
