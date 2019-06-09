@@ -128,7 +128,8 @@ upperFastGRNN = FastGRNNCell(NUM_HIDDEN_SECONDTIER, wRank=WRANK, uRank=URANK,
                            gate_non_linearity=GATE_NL, update_non_linearity=UPDATE_NL)
 
 
-# Define the linear secondary classifier - This incorporates upper FastGRNN
+# Define the upper layer - This incorporates upper FastGRNN
+# Define the two classifiers at two levels
 def createExtendedGraph(self, baseOutput, *args, **kwargs):
     # Get EMI output - Target vs noise, so NUM_OUTPUT hardcoded as 2
     W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, 2]).astype('float32'), name='W1')
