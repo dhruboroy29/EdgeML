@@ -159,9 +159,12 @@ class EMI_Trainer_2Tier:
             elif self.lossType == 'l2':
                 lossOp = tf.nn.l2_loss(diff, name='l2-loss')
 
-            # Add upper layer loss
-            target_indicator = 1
-            lossOp_upper = target_indicator * utils.crossEntropyLoss(predicted_upper, target_upper)
+            '''Add upper layer loss'''
+            # Target indicator
+            target_type=tf.argmax(target_upper, axis=1)
+            mask = tf.greater(target_type, tf.zeros_like(target_type))
+            target_indicator = tf.cast(mask, tf.float32)
+            lossOp_upper = utils.crossEntropyLossWithIndicator(predicted_upper, target_upper, target_indicator)
 
             lossOp = lossOp + lossOp_upper
         return lossOp

@@ -95,6 +95,17 @@ def multiClassHingeLoss(logits, label, batch_th):
     return tf.reduce_mean(tf.nn.relu(1. + wrongMaxLogit - correctLogit))
 
 
+# Cross entropy loss with indicator - computes loss only for indicated rows
+def crossEntropyLossWithIndicator(logits, label, indicator):
+    '''
+    Cross Entropy loss for MultiClass case in joint training for
+    faster convergence
+    '''
+    return tf.reduce_mean(
+        tf.multiply(indicator, tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,
+                                                   labels=tf.stop_gradient(label))))
+
+
 def crossEntropyLoss(logits, label):
     '''
     Cross Entropy loss for MultiClass case in joint training for

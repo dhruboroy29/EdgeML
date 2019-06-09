@@ -35,7 +35,6 @@ parser.add_argument('-ots', type=int, default=256, help='Original number of time
 parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
 parser.add_argument('-O', type=int, default=3, help='Number of outputs - all (#target types+noise)')
-parser.add_argument('-O2', type=int, default=2, help='Number of outputs - second tier (#target types)')
 parser.add_argument('-d', type=bool, default=False, help='Dropout?')
 parser.add_argument('-kp', type=float, default=0.9, help='Keep probability')
 parser.add_argument('-uN', type=str, default="quantTanh", help='Update nonlinearity')
@@ -59,7 +58,6 @@ ORIGINAL_NUM_TIMESTEPS = args.ots #256
 NUM_FEATS = args.F #2
 FORGET_BIAS = args.fb #1.0
 NUM_OUTPUT = args.O #2
-NUM_OUTPUT_SECONDTIER = args.O2 #2
 USE_DROPOUT = args.d #False
 KEEP_PROB = args.kp #0.9
 
@@ -146,9 +144,9 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
     secondtier=outputs[-1]
 
     # Get second-tier output
-    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT_SECONDTIER]).astype('float32'), name='W2')
-    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT_SECONDTIER]).astype('float32'), name='B2')
-    y_cap_upper = tf.add(tf.tensordot(secondtier, W1, axes=1), B1, name='y_cap_upper')
+    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W2')
+    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B2')
+    y_cap_upper = tf.add(tf.tensordot(secondtier, W2, axes=1), B2, name='y_cap_upper')
     self.output = [y_cap, y_cap_upper]
     self.graphCreated = True
 
@@ -198,7 +196,7 @@ with g1.as_default():
     # Get bag outputs from batch
     y_batch_upper = tf.argmax(y_batch[:, 0, :], axis=1)
     # Convert to one-hot
-    y_batch_upper = tf.one_hot(y_batch_upper, depth=3, axis=-1)
+    y_batch_upper = tf.one_hot(y_batch_upper, depth=NUM_OUTPUT, axis=-1)
 
     # Create the forward computation graph based on the iterators
     y_cap, y_cap_upper = emiFastGRNN(x_batch)
