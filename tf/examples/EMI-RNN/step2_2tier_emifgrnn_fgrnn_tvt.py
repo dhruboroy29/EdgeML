@@ -35,6 +35,7 @@ parser.add_argument('-ots', type=int, default=256, help='Original number of time
 parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
 parser.add_argument('-O', type=int, default=2, help='Number of outputs')
+parser.add_argument('-O2', type=int, default=2, help='Number of outputs - second tier')
 parser.add_argument('-d', type=bool, default=False, help='Dropout?')
 parser.add_argument('-kp', type=float, default=0.9, help='Keep probability')
 parser.add_argument('-uN', type=str, default="quantTanh", help='Update nonlinearity')
@@ -58,6 +59,7 @@ ORIGINAL_NUM_TIMESTEPS = args.ots #256
 NUM_FEATS = args.F #2
 FORGET_BIAS = args.fb #1.0
 NUM_OUTPUT = args.O #2
+NUM_OUTPUT_SECONDTIER = args.O2 #2
 USE_DROPOUT = args.d #False
 KEEP_PROB = args.kp #0.9
 
@@ -135,13 +137,18 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
         outputs, states = tf.nn.static_rnn(FastObj, x, dtype=tf.float32)
         return outputs[-1]
 
+    # Get EMI output
+    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, NUM_OUTPUT]).astype('float32'), name='W1')
+    B1 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B1')
+    y_cap = tf.add(tf.tensordot(baseOutput, W1, axes=1), B1, name='y_cap_tata')
+
     # Get EMI embeddings
     emiEmbeddings = baseOutput[:, :, -1, :]
     secondtier = RNN(emiEmbeddings, np.shape(emiEmbeddings)[1],upperFastGRNN)
 
-    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W1')
-    B1 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B1')
-    y_cap = tf.add(tf.tensordot(secondtier, W1, axes=1), B1, name='y_cap_tata')
+    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT_SECONDTIER]).astype('float32'), name='W2')
+    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT_SECONDTIER]).astype('float32'), name='B2')
+    y_cap_upper = tf.add(tf.tensordot(secondtier, W1, axes=1), B1, name='y_cap_upper')
     self.output = y_cap
     self.graphCreated = True
 
