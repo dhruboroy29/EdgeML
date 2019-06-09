@@ -108,7 +108,7 @@ class EMI_Trainer_2Tier:
         if self.graph is None:
             self._createGraph(predicted, predicted_upper, target, target_upper)
         else:
-            self._restoreGraph(predicted, predicted_upper, target)
+            self._restoreGraph(predicted, target)
         assert self.graphCreated == True
         return self.lossOp, self.trainOp
 

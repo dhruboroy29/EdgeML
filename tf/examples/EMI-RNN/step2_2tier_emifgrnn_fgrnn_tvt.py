@@ -144,7 +144,7 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
     outputs, states = tf.nn.static_rnn(upperFastGRNN, x, dtype=tf.float32)
     secondtier=outputs[-1]
 
-    # Get second-tier output
+    # Get second-tier output - here, #outputs is 3, only noise loss doesn't propagate up
     W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W2')
     B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B2')
     y_cap_upper = tf.add(tf.tensordot(secondtier, W2, axes=1), B2, name='y_cap_upper')
