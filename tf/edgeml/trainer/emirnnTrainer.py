@@ -8,6 +8,293 @@ import sys
 import edgeml.utils as utils
 import pandas as pd
 
+class EMI_Trainer_2Tier:
+    def __init__(self, numTimeSteps, numOutput, graph=None,
+                 stepSize=0.001, lossType='l2', optimizer='Adam',
+                 automode=True):
+        '''
+        The EMI-RNN trainer. This classes attaches loss functions and training
+        operations to the forward EMI-RNN graph. Currently, simple softmax loss
+        and l2 loss are supported on the outputs. For optimizers, only ADAM
+        optimizer is available.
+
+        numTimesteps: Number of time steps of the RNN model
+        numOutput: Number of output classes
+        graph: This module supports restoring from a meta graph. Provide the
+            meta graph as an argument to enable this behaviour.
+        lossType: A valid loss type string in ['l2', 'xentropy'].
+        optimizer: A valid optimizer string in ['Adam'].
+        automode: Disable or enable the automode behaviour.
+        This module takes care of all of the training procedure automatically,
+        and the default behaviour is suitable for most cases. In certain cases
+        though, the user would want to change certain aspects of the graph;
+        specifically, he would want to change to loss operation by, say, adding
+        regularization terms for the model matrices. To enable this behaviour,
+        the user can perform the following steps:
+            1. Disable automode. That is, when initializing, set automode=False
+            2. After the __call__ method has been invoked to create the loss
+            operation, the user can access the self.lossOp attribute and modify
+            it by adding regularization or other terms.
+            3. After the modification has been performed, the user needs to
+            call the `createOpCollections()` method so that the newly edited
+            operations can be added to Tensorflow collections. This helps in
+
+        HELP_WANTED: Automode is more of a hack than a systematic way of
+        supporting multiple loss functions/ optimizers. One way of
+        accomplishing this would be to make __createTrainOp and __createLossOp
+        methods protected or public, and having users override these.
+        Alternatively, we can change the structure to incorporate the
+        _createExtendedGraph and _restoreExtendedGraph operations used in
+        EMI-LSTM and so forth.
+        '''
+        self.numTimeSteps = numTimeSteps
+        self.numOutput = numOutput
+        self.graph = graph
+        self.stepSize = stepSize
+        self.lossType = lossType
+        self.optimizer = optimizer
+        self.automode = automode
+        self.__validInit = False
+        self.graphCreated = False
+        # Operations to be restored
+        self.lossOp = None
+        self.trainOp = None
+        self.softmaxPredictions = None
+        self.accTilda = None
+        self.equalTilda = None
+        self.lossIndicatorTensor = None
+        self.lossIndicatorPlaceholder = None
+        self.lossIndicatorAssignOp = None
+        # Input validation
+        self.supportedLosses = ['xentropy', 'l2']
+        self.supportedOptimizers = ['Adam']
+        assert lossType in self.supportedLosses
+        assert optimizer in self.supportedOptimizers
+        # Internal
+        self.scope = 'EMI/Trainer/'
+
+    def __validateInit(self, predicted, target):
+        msg = 'Predicted/Target tensors have incorrect dimension'
+        assert len(predicted.shape) == 4, msg
+        assert predicted.shape[3] == self.numOutput, msg
+        assert predicted.shape[2] == self.numTimeSteps, msg
+        assert predicted.shape[1] == target.shape[1], msg
+        assert len(target.shape) == 3
+        assert target.shape[2] == self.numOutput
+        self.__validInit = True
+
+    def __call__(self, predicted, predicted_upper, target):
+        '''
+        Constructs the loss and train operations. If already created, returns
+        the created operators.
+
+        predicted: The prediction scores outputed from the forward computation
+            graph. Expects a 4 dimensional tensor with shape [-1,
+            numSubinstance, numTimeSteps, numClass].
+        target: The target labels in one hot-encoding. Expects [-1,
+            numSubinstance, numClass]
+        '''
+        if self.graphCreated is True:
+            # TODO: These statements are redundant after self.validInit call
+            # A simple check to self.__validInit should suffice. Test this.
+            assert self.lossOp is not None
+            assert self.trainOp is not None
+            return self.lossOp, self.trainOp
+        self.__validateInit(predicted, target)
+        assert self.__validInit is True
+        if self.graph is None:
+            self._createGraph(predicted, predicted_upper, target)
+        else:
+            self._restoreGraph(predicted, predicted_upper, target)
+        assert self.graphCreated == True
+        return self.lossOp, self.trainOp
+
+    def __transformY(self, target):
+        '''
+        Because we need output from each step and not just the last step.
+        Currently we just tile the target to each step. This method can be
+        exteneded/overridden to allow more complex behaviours
+        '''
+        with tf.name_scope(self.scope):
+            A_ = tf.expand_dims(target, axis=2)
+            A__ = tf.tile(A_, [1, 1, self.numTimeSteps, 1])
+        return A__
+
+    def __createLossOp(self, predicted, predicted_upper, target):
+        assert self.__validInit is True, 'Initialization failure'
+        with tf.name_scope(self.scope):
+            # Loss indicator tensor
+            li = np.zeros([self.numTimeSteps, self.numOutput])
+            li[-1, :] = 1
+            liTensor = tf.Variable(li.astype('float32'),
+                                   name='loss-indicator',
+                                   trainable=False)
+            name='loss-indicator-placeholder'
+            liPlaceholder = tf.placeholder(tf.float32,
+                                           name=name)
+            liAssignOp = tf.assign(liTensor, liPlaceholder,
+                                   name='loss-indicator-assign-op')
+            self.lossIndicatorTensor = liTensor
+            self.lossIndicatorPlaceholder = liPlaceholder
+            self.lossIndicatorAssignOp = liAssignOp
+            # predicted of dim [-1, numSubinstance, numTimeSteps, numOutput]
+            dims = [-1, self.numTimeSteps, self.numOutput]
+            logits__ = tf.reshape(predicted, dims)
+            labels__ = tf.reshape(target, dims)
+            diff = (logits__ - labels__)
+            diff = tf.multiply(self.lossIndicatorTensor, diff)
+            # take loss only for the timesteps indicated by lossIndicator for softmax
+            logits__ = tf.multiply(self.lossIndicatorTensor, logits__)
+            labels__ = tf.multiply(self.lossIndicatorTensor, labels__)
+            logits__ = tf.reshape(logits__, [-1, self.numOutput])
+            labels__ = tf.reshape(labels__, [-1, self.numOutput])
+            # Regular softmax
+            if self.lossType == 'xentropy':
+                softmax1 = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels__,
+                                                                      logits=logits__)
+                lossOp = tf.reduce_mean(softmax1, name='xentropy-loss')
+            elif self.lossType == 'l2':
+                lossOp = tf.nn.l2_loss(diff, name='l2-loss')
+
+            # Add upper layer loss
+            target_indicator = 1
+            lossOp_upper = target_indicator * utils.crossEntropyLoss(predicted_upper, target)
+
+            lossOp = lossOp + lossOp_upper
+        return lossOp
+
+    def __createTrainOp(self):
+        with tf.name_scope(self.scope):
+            tst = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp)
+        return tst
+
+    def _createGraph(self, predicted, predicted_upper, target):
+        target = self.__transformY(target)
+        assert self.__validInit is True
+        with tf.name_scope(self.scope):
+            self.softmaxPredictions = tf.nn.softmax(predicted, axis=3,
+                                                    name='softmaxed-prediction')
+            pred = self.softmaxPredictions[:, :, -1, :]
+            actu = target[:, :, -1, :]
+            resPred = tf.reshape(pred, [-1, self.numOutput])
+            resActu = tf.reshape(actu, [-1, self.numOutput])
+            maxPred = tf.argmax(resPred, axis=1)
+            maxActu = tf.argmax(resActu, axis=1)
+            equal = tf.equal(maxPred, maxActu)
+            self.equalTilda = tf.cast(equal, tf.float32, name='equal-tilda')
+            self.accTilda = tf.reduce_mean(self.equalTilda, name='acc-tilda')
+
+        self.lossOp = self.__createLossOp(predicted, predicted_upper, target)
+        self.trainOp = self.__createTrainOp()
+        if self.automode:
+            self.createOpCollections()
+        self.graphCreated = True
+
+    def _restoreGraph(self, predicted, target):
+        assert self.graphCreated is False
+        scope = self.scope
+        graph = self.graph
+        self.trainOp = tf.get_collection('EMI-train-op')
+        self.lossOp = tf.get_collection('EMI-loss-op')
+        msg0 = 'Operator or tensor not found'
+        msg1 = 'Multiple tensors with the same name in the graph. Are you not'
+        msg1 +=' resetting your graph?'
+        assert len(self.trainOp) != 0, msg0
+        assert len(self.lossOp) != 0, msg0
+        assert len(self.trainOp) == 1, msg1
+        assert len(self.lossOp) == 1, msg1
+        self.trainOp = self.trainOp[0]
+        self.lossOp = self.lossOp[0]
+        self.lossIndicatorTensor = graph.get_tensor_by_name(scope +
+                                                            'loss-indicator:0')
+        name = 'loss-indicator-placeholder:0'
+        self.lossIndicatorPlaceholder = graph.get_tensor_by_name(scope + name)
+        name = 'loss-indicator-assign-op:0'
+        self.lossIndicatorAssignOp = graph.get_tensor_by_name(scope + name)
+        name = scope + 'softmaxed-prediction:0'
+        self.softmaxPredictions = graph.get_tensor_by_name(name)
+        name = scope + 'acc-tilda:0'
+        self.accTilda = graph.get_tensor_by_name(name)
+        name = scope + 'equal-tilda:0'
+        self.equalTilda = graph.get_tensor_by_name(name)
+        self.graphCreated = True
+        self.__validInit = True
+
+    def createOpCollections(self):
+        '''
+        Adds the trainOp and lossOp to Tensorflow collections. This enables us
+        to restore these operations from saved metagraphs.
+        '''
+        tf.add_to_collection('EMI-train-op', self.trainOp)
+        tf.add_to_collection('EMI-loss-op', self.lossOp)
+
+    def __echoCB(self, sess, feedDict, currentBatch, redirFile, **kwargs):
+        _, loss = sess.run([self.trainOp, self.lossOp],
+                                feed_dict=feedDict)
+        print("\rBatch %5d Loss %2.5f" % (currentBatch, loss),
+              end='', file=redirFile)
+
+    def trainModel(self, sess, redirFile=None, echoInterval=15,
+                   echoCB=None, feedDict=None, **kwargs):
+        '''
+        The training routine.
+
+        sess: The Tensorflow session associated with the computation graph.
+        redirFile: Output from the training routine can be redirected to a file
+            on the disk. Please provide the file pointer to said file to enable
+            this behaviour. Defaults to STDOUT. To disable outputs all
+            together, please pass a file pointer to DEVNULL or equivalent as an
+            argument.
+        echoInterval: The number of batch updates between calls to echoCB.
+        echoCB: This call back method is used for printing intermittent
+            training stats such as validation accuracy or loss value. By default,
+            it defaults to self.__echoCB. The signature of the method is,
+
+            echoCB(self, session, feedDict, currentBatch, redirFile, **kwargs)
+
+            Please refer to the __echoCB implementation for a simple example.
+            A more complex example can be found in the EMI_Driver.
+        feedDict: feedDict, that is required for the session.run() calls. Will
+            be directly passed to the sess.run() calls.
+        **kwargs: Additional args to echoCB.
+        '''
+        if echoCB is None:
+            echoCB = self.__echoCB
+        currentBatch = 0
+        while True:
+            try:
+                if currentBatch % echoInterval == 0:
+                    echoCB(sess, feedDict, currentBatch, redirFile, **kwargs)
+                else:
+                    sess.run([self.trainOp], feed_dict=feedDict)
+                currentBatch += 1
+            except tf.errors.OutOfRangeError:
+                break
+
+    def restoreFromGraph(self, graph):
+        '''
+        This method provides an alternate way of restoring
+        from a saved meta graph - without having to provide the restored meta
+        graph as a parameter to __init__. This is useful when, in between
+        training, you want to reset the entire computation graph and reload a
+        new meta graph from disk. This method allows you to attach to this
+        newly loaded meta graph without having to create a new EMI_Trainer
+        object. Use this method only when you want to clear/reset the existing
+        computational graph.
+        '''
+        self.graphCreated = False
+        self.lossOp = None
+        self.trainOp = None
+        self.lossIndicatorTensor = None
+        self.softmaxPredictions = None
+        self.accTilda = None
+        self.graph = graph
+        self.__validInit = True
+        assert self.graphCreated is False
+        self._restoreGraph(None, None)
+        assert self.graphCreated is True
+
+
 class EMI_Trainer:
     def __init__(self, numTimeSteps, numOutput, graph=None,
                  stepSize=0.001, lossType='l2', optimizer='Adam',
@@ -311,7 +598,7 @@ class EMI_Driver:
 
         emiDataPipeline: An EMI_DataPipeline object.
         emiGraph: An EMI_RNN object.
-        emiTrainer: An EMI_Trainer object.
+        emiTrainer2tier: An EMI_Trainer object.
         max_to_keep: Maximum number of model checkpoints to keep. Make sure
             that this is more than [number of iterations] * [number of rounds].
         globalStepStart: The global step  value is used as a key for naming
