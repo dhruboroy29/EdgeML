@@ -43,7 +43,7 @@ out_file = os.path.join('..', args.bat + '_hpc', args.type + out_suffix + '.sh')
 
 def generate_trainstring(v):
     res_str = "python3 ../tf/examples/EMI-RNN/step2_emi_fastrgnn_disp_det.py -O " + str(args.O)\
-              + " -gN" + str(v[0]) + " -uN " + str(v[1]) + " -bs " + str(v[2]) + " -H " + str(
+              + " -gN " + str(v[0]) + " -uN " + str(v[1]) + " -bs " + str(v[2]) + " -H " + str(
         v[3]) + " -Dat " + args.base\
               + " -rnd " + str(args.rnd) + " -it " + str(args.it) + " -ep" + str(args.ep) + " -out $outname"
 
