@@ -264,7 +264,7 @@ def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
 #df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Write model stats file
-with open(os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
                                 + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) + '.csv'),'w') as out:
     csv_out=csv.writer(out)
     csv_out.writerow(['name','num'])
@@ -280,7 +280,7 @@ for val in modelStats:
 
     '''Run each model on validation set'''
     # Get instance-level predictions
-    emiDriver.loadSavedGraphToNewSession(c_modelPrefix, c_globalStep, redirFile=devnull)
+    emiDriver.loadSavedGraphToNewSession(c_modelPrefix, int(c_globalStep), redirFile=devnull)
     predictions, predictionStep = emiDriver.getInstancePredictions(x_val, y_val, earlyPolicy_minProb,
                                                                    minProb=0.99, keep_prob=1.0)
     # Get bag-level predictions
@@ -292,20 +292,41 @@ for val in modelStats:
     # Finally, compute validation accuracy
     val_acc = np.mean((valPredictions == BAG_VAL).astype(int))
 
-    print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, val_acc), end='')
+    print("VALIDATION CONF MATRIX\tRound: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, val_acc), end='')
 
     # Print confusion matrix
     print('\n')
-    valcmatrix = utils.getConfusionMatrix(valPredictions, BAG_TEST, NUM_OUTPUT)
+    valcmatrix = utils.getConfusionMatrix(valPredictions, BAG_VAL, NUM_OUTPUT)
     utils.printFormattedConfusionMatrix(valcmatrix)
+    print('\n')
+
+    '''Run the model on the test set'''
+    # Get instance-level predictions
+    predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
+                                                                   minProb=0.99, keep_prob=1.0)
+    # Get bag-level predictions
+    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+    # Get upper tier predictions
+    upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
+    # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
+    testPredictions = np.multiply(bagPredictions, upperPredictions)
+
+    print("TEST CONF MATRIX\tRound: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, acc),
+          end='')
+    print(', Test Accuracy (k = %d): %f, ' % (k, np.mean((testPredictions == BAG_TEST).astype(int))), end='')
+
+    # Print confusion matrix
+    print('\n')
+    testcmatrix = utils.getConfusionMatrix(testPredictions, BAG_TEST, NUM_OUTPUT)
+    utils.printFormattedConfusionMatrix(testcmatrix)
     print('\n')
 
     if val_acc > acc:
         round_, acc, modelPrefix, globalStep = c_round_, val_acc, c_modelPrefix, c_globalStep
 
 
-
 ''' Compute test accuracy on best model obtained above'''
+print("*******\t BEST MODEL TEST CONFUSION MATRIX\t*******")
 # Get instance-level predictions
 emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
