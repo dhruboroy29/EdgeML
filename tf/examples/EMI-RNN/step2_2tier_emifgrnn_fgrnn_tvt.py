@@ -288,9 +288,9 @@ for val in modelStats:
     # Get upper tier predictions
     upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
     # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
-    switchPredictions = np.multiply(bagPredictions, upperPredictions)
+    valPredictions = np.multiply(bagPredictions, upperPredictions)
     # Finally, compute validation accuracy
-    val_acc = np.mean((switchPredictions == BAG_VAL).astype(int))
+    val_acc = np.mean((valPredictions == BAG_VAL).astype(int))
 
     if val_acc > acc:
         round_, acc, modelPrefix, globalStep = c_round_, val_acc, c_modelPrefix, c_globalStep
@@ -307,15 +307,15 @@ bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, n
 # Get upper tier predictions
 upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
 # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
-switchPredictions = np.multiply(bagPredictions, upperPredictions)
+testPredictions = np.multiply(bagPredictions, upperPredictions)
 
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
-print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((switchPredictions == BAG_TEST).astype(int))), end='')
+print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((testPredictions == BAG_TEST).astype(int))), end='')
 
 # Print confusion matrix
 print('\n')
-bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
-utils.printFormattedConfusionMatrix(bagcmatrix)
+testcmatrix = utils.getConfusionMatrix(testPredictions, BAG_TEST, NUM_OUTPUT)
+utils.printFormattedConfusionMatrix(testcmatrix)
 print('\n')
 
 # Print model size
