@@ -295,6 +295,8 @@ for val in modelStats:
     if val_acc > acc:
         round_, acc, modelPrefix, globalStep = c_round_, val_acc, c_modelPrefix, c_globalStep
 
+
+
 ''' Compute test accuracy on best model obtained above'''
 # Get instance-level predictions
 emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
@@ -308,7 +310,7 @@ upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
 switchPredictions = np.multiply(bagPredictions, upperPredictions)
 
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
-print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
+print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((switchPredictions == BAG_TEST).astype(int))), end='')
 
 # Print confusion matrix
 print('\n')
