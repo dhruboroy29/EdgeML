@@ -1121,8 +1121,8 @@ class EMI_Driver:
     def getUpperTierPredictions(self, x, y, batchSize=1024,
                                feedDict=None, **kwargs):
         opList = self._emiTrainer.uppersoftmaxPredictions
-        smxOut = self.runOps(opList, x, y, batchSize, feedDict=feedDict, **kwargs)
-        return np.max(smxOut, axis=1)
+        smxOut = np.vstack(self.runOps(opList, x, y, batchSize, feedDict=feedDict, **kwargs))
+        return np.argmax(smxOut, axis=1)
 
     def getBagPredictions(self, Y_predicted, minSubsequenceLen = 4,
                           numClass=2, redirFile = None):
