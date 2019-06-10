@@ -153,7 +153,9 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
 
 def restoreExtendedGraph(self, graph, *args, **kwargs):
     y_cap = graph.get_tensor_by_name('y_cap_tata:0')
-    self.output = y_cap
+    y_cap_upper = graph.get_tensor_by_name('y_cap_upper:0')
+    self.output = [y_cap, y_cap_upper]
+
     self.graphCreated = True
 
 

@@ -233,6 +233,10 @@ class EMI_Trainer_2Tier:
         self.accTilda = graph.get_tensor_by_name(name)
         name = scope + 'equal-tilda:0'
         self.equalTilda = graph.get_tensor_by_name(name)
+        name = scope + 'upper-softmaxed-prediction:0'
+        self.uppersoftmaxPredictions = graph.get_tensor_by_name(name)
+        name = scope + 'acc-upper:0'
+        self.accUpper = graph.get_tensor_by_name(name)
         self.graphCreated = True
         self.__validInit = True
 
@@ -303,6 +307,8 @@ class EMI_Trainer_2Tier:
         self.trainOp = None
         self.lossIndicatorTensor = None
         self.softmaxPredictions = None
+        self.uppersoftmaxPredictions = None
+        self.accUpper = None
         self.accTilda = None
         self.graph = graph
         self.__validInit = True
