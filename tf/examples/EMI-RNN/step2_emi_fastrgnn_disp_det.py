@@ -44,6 +44,7 @@ parser.add_argument('-ep', type=int, default=3, help='Number of epochs per itera
 parser.add_argument('-it', type=int, default=4, help='Number of iterations per round')
 parser.add_argument('-rnd', type=int, default=10, help='Number of rounds')
 parser.add_argument('-Dat', type=str, help='Data directory')
+parser.add_argument('-out', type=str, default=sys.stdout, help='Output filename')
 
 args = parser.parse_args()
 
@@ -246,18 +247,38 @@ bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, n
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
 
+test_acc = np.mean((bagPredictions == BAG_TEST).astype(int))
+
 # Print confusion matrix
 print('\n')
 bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
 utils.printFormattedConfusionMatrix(bagcmatrix)
 print('\n')
 
+# Get class recalls
+recalllist = np.sum(bagcmatrix, axis=0)
+recalllist = [bagcmatrix[i][i] / x if x !=
+                  0 else -1 for i, x in enumerate(recalllist)]
+
 # Print model size
 metaname = modelPrefix + '-%d.meta' % globalStep
-utils.getModelSize(metaname)
+modelsize = utils.getModelSize(metaname)
 
 mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
 emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
 total_savings = mi_savings + (1 - mi_savings) * emi_savings
 print('Additional savings: %f' % emi_savings)
 print("Total Savings: %f" % total_savings)
+
+# Create result string
+results_list = [args.gN, args.uN, args.uR, args.wR, args.rnd, args.ep, args.it, args.bs, args.H,
+       k, total_savings, modelsize, acc, test_acc]
+for recall in recalllist:
+    results_list.append(recall)
+
+# Print to output file
+out_handle = open(args.out, "a")
+# Write a line of output
+out_handle.write('\t'.join(map(str, results_list)) + '\n')
+out_handle.close()
+

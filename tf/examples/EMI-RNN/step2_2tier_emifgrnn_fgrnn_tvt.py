@@ -28,7 +28,7 @@ import edgeml.utils
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-FastGRNN')
 parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances. 100 for max possible')
 parser.add_argument('-H', type=int, default=16, help='Number of hidden units')
-parser.add_argument('-H2', type=int, default=32, help='Number of second-tier hidden units')
+parser.add_argument('-H2', type=int, default=-1, help='Number of second-tier hidden units (defaults to -H)')
 parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
 parser.add_argument('-F', type=int, default=2, help='Number of features')
@@ -45,13 +45,17 @@ parser.add_argument('-ep', type=int, default=3, help='Number of epochs per itera
 parser.add_argument('-it', type=int, default=4, help='Number of iterations per round')
 parser.add_argument('-rnd', type=int, default=10, help='Number of rounds')
 parser.add_argument('-Dat', type=str, help='Data directory')
+parser.add_argument('-out', type=str, default=sys.stdout, help='Output filename')
 
 args = parser.parse_args()
 
 # Network parameters for our FastGRNN + FC Layer
 k = args.k #2
 NUM_HIDDEN = args.H #16
-NUM_HIDDEN_SECONDTIER = args.H2 #16
+if args.H2 == -1:
+    NUM_HIDDEN_SECONDTIER = NUM_HIDDEN
+else:
+    NUM_HIDDEN_SECONDTIER = args.H2 #16
 NUM_TIMESTEPS = args.ts #48
 ORIGINAL_NUM_TIMESTEPS = args.ots #256
 NUM_FEATS = args.F #2
@@ -294,34 +298,34 @@ for val in modelStats:
     # Finally, compute validation accuracy
     val_acc = np.mean((valPredictions == BAG_VAL).astype(int))
 
-    print("VALIDATION CONF MATRIX\tRound: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, val_acc), end='')
-
-    # Print confusion matrix
-    print('\n')
-    valcmatrix = utils.getConfusionMatrix(valPredictions, BAG_VAL, NUM_OUTPUT)
-    utils.printFormattedConfusionMatrix(valcmatrix)
-    print('\n')
-
-    '''Run the model on the test set'''
-    # Get instance-level predictions
-    predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
-                                                                   minProb=0.99, keep_prob=1.0)
-    # Get bag-level predictions
-    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
-    # Get upper tier predictions
-    upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
-    # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
-    testPredictions = np.multiply(bagPredictions, upperPredictions)
-
-    print("TEST CONF MATRIX\tRound: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, acc),
-          end='')
-    print(', Test Accuracy (k = %d): %f, ' % (k, np.mean((testPredictions == BAG_TEST).astype(int))), end='')
-
-    # Print confusion matrix
-    print('\n')
-    testcmatrix = utils.getConfusionMatrix(testPredictions, BAG_TEST, NUM_OUTPUT)
-    utils.printFormattedConfusionMatrix(testcmatrix)
-    print('\n')
+    # print("VALIDATION CONF MATRIX\tRound: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, val_acc), end='')
+    #
+    # # Print confusion matrix
+    # print('\n')
+    # valcmatrix = utils.getConfusionMatrix(valPredictions, BAG_VAL, NUM_OUTPUT)
+    # utils.printFormattedConfusionMatrix(valcmatrix)
+    # print('\n')
+    #
+    # '''Run the model on the test set'''
+    # # Get instance-level predictions
+    # predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
+    #                                                                minProb=0.99, keep_prob=1.0)
+    # # Get bag-level predictions
+    # bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+    # # Get upper tier predictions
+    # upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
+    # # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
+    # testPredictions = np.multiply(bagPredictions, upperPredictions)
+    #
+    # print("TEST CONF MATRIX\tRound: %2d, window length: %3d, Validation accuracy: %.4f" % (c_round_, ORIGINAL_NUM_TIMESTEPS, acc),
+    #       end='')
+    # print(', Test Accuracy (k = %d): %f, ' % (k, np.mean((testPredictions == BAG_TEST).astype(int))), end='')
+    #
+    # # Print confusion matrix
+    # print('\n')
+    # testcmatrix = utils.getConfusionMatrix(testPredictions, BAG_TEST, NUM_OUTPUT)
+    # utils.printFormattedConfusionMatrix(testcmatrix)
+    # print('\n')
 
     if val_acc > acc:
         round_, acc, modelPrefix, globalStep = c_round_, val_acc, c_modelPrefix, c_globalStep
@@ -343,15 +347,21 @@ testPredictions = np.multiply(bagPredictions, upperPredictions)
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((testPredictions == BAG_TEST).astype(int))), end='')
 
+test_acc = np.mean((testPredictions == BAG_TEST).astype(int))
 # Print confusion matrix
 print('\n')
 testcmatrix = utils.getConfusionMatrix(testPredictions, BAG_TEST, NUM_OUTPUT)
 utils.printFormattedConfusionMatrix(testcmatrix)
 print('\n')
 
+# Get class recalls
+recalllist = np.sum(testcmatrix, axis=0)
+recalllist = [testcmatrix[i][i] / x if x !=
+                  0 else -1 for i, x in enumerate(recalllist)]
+
 # Print model size
 metaname = modelPrefix + '-%d.meta' % globalStep
-utils.getModelSize(metaname)
+modelsize = utils.getModelSize(metaname)
 
 mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
 emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
@@ -359,3 +369,15 @@ total_savings = mi_savings + (1 - mi_savings) * emi_savings
 print('Savings due to MI-RNN : %f' % mi_savings)
 print('Additional savings due to Early prediction: %f' % emi_savings)
 print("Total Savings: %f" % total_savings)
+
+# Create result string
+results_list = [args.gN, args.uN, args.uR, args.wR, args.rnd, args.ep, args.it, args.bs, args.H, NUM_HIDDEN_SECONDTIER,
+       k, total_savings, modelsize, acc, test_acc]
+for recall in recalllist:
+    results_list.append(recall)
+
+# Print to output file
+out_handle = open(args.out, "a")
+# Write a line of output
+out_handle.write('\t'.join(map(str, results_list)) + '\n')
+out_handle.close()

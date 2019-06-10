@@ -22,6 +22,7 @@ def getModelSize(full_path_meta):
 
     print("Model size in float32:", sum * 4 / 10 ** 3, "KB")
     print("Model size in Q15:", sum * 2 / 10 ** 3, "KB")
+    return sum * 4 / 10 ** 3
 
 
 def medianHeuristic(data, projectionDimension, numPrototypes, W_init=None):
