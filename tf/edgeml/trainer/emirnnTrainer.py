@@ -167,8 +167,9 @@ class EMI_Trainer_2Tier:
             target_type=tf.argmax(target_upper, axis=1)
             mask = tf.greater(target_type, tf.zeros_like(target_type))
             target_indicator = tf.cast(mask, tf.float32)
-            lossOp_upper = utils.crossEntropyLossWithIndicator(predicted_upper, target_upper, target_indicator)
 
+            # Add upper tier loss only if this is target, i.e., not noise - switch emulation logic
+            lossOp_upper = utils.crossEntropyLossWithIndicator(predicted_upper, target_upper, target_indicator)
             lossOp = lossOp + lossOp_upper
         return lossOp
 
@@ -1110,6 +1111,12 @@ class EMI_Driver:
         predictions = np.reshape(predictions, [-1, numSubinstance])
         predictionStep = np.reshape(predictionStep, [-1, numSubinstance])
         return predictions, predictionStep
+
+    def getUpperTierPredictions(self, x, y, batchSize=1024,
+                               feedDict=None, **kwargs):
+        opList = self._emiTrainer.uppersoftmaxPredictions
+        smxOut = self.runOps(opList, x, y, batchSize, feedDict=feedDict, **kwargs)
+        return np.max(smxOut, axis=1)
 
     def getBagPredictions(self, Y_predicted, minSubsequenceLen = 4,
                           numClass=2, redirFile = None):

@@ -22,7 +22,6 @@ import edgeml.utils as utils
 from edgeml.graph.rnn import EMI_DataPipeline
 from edgeml.graph.rnn import EMI_FastGRNN
 from edgeml.graph.rnn import FastGRNNCell
-from edgeml.trainer.fastTrainer import FastTrainer
 from edgeml.trainer.emirnnTrainer import EMI_Trainer_2Tier, EMI_Driver
 import edgeml.utils
 
@@ -247,16 +246,16 @@ def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
     return savings
 
 #k = 2
-predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
-                                                               minProb=0.99, keep_prob=1.0)
-bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
-print('Accuracy at k = %d: %f' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))))
-mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
-emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-total_savings = mi_savings + (1 - mi_savings) * emi_savings
-print('Savings due to MI-RNN : %f' % mi_savings)
-print('Savings due to Early prediction: %f' % emi_savings)
-print('Total Savings: %f' % (total_savings))
+#predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
+#                                                               minProb=0.99, keep_prob=1.0)
+#bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
+#print('Accuracy at k = %d: %f' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))))
+#mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+#emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
+#total_savings = mi_savings + (1 - mi_savings) * emi_savings
+#print('Savings due to MI-RNN : %f' % mi_savings)
+#print('Savings due to Early prediction: %f' % emi_savings)
+#print('Total Savings: %f' % (total_savings))
 
 
 # A slightly more detailed analysis method is provided.
@@ -276,14 +275,36 @@ acc = 0.0
 
 for val in modelStats:
     c_round_, c_acc, c_modelPrefix, c_globalStep = val
-    if c_acc > acc:
-        round_, acc, modelPrefix, globalStep = c_round_, c_acc, c_modelPrefix, c_globalStep
 
+    '''Run each model on validation set'''
+    # Get instance-level predictions
+    emiDriver.loadSavedGraphToNewSession(c_modelPrefix, c_globalStep, redirFile=devnull)
+    predictions, predictionStep = emiDriver.getInstancePredictions(x_val, y_val, earlyPolicy_minProb,
+                                                                   minProb=0.99, keep_prob=1.0)
+    # Get bag-level predictions
+    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+    # Get upper tier predictions
+    upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
+    # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
+    switchPredictions = np.multiply(bagPredictions, upperPredictions)
+    # Finally, compute validation accuracy
+    val_acc = np.mean((switchPredictions == BAG_VAL).astype(int))
+
+    if val_acc > acc:
+        round_, acc, modelPrefix, globalStep = c_round_, val_acc, c_modelPrefix, c_globalStep
+
+''' Compute test accuracy on best model obtained above'''
+# Get instance-level predictions
 emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                            minProb=0.99, keep_prob=1.0)
+# Get bag-level predictions
+bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+# Get upper tier predictions
+upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
+# Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
+switchPredictions = np.multiply(bagPredictions, upperPredictions)
 
-bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
 
@@ -300,5 +321,6 @@ utils.getModelSize(metaname)
 mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
 emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
 total_savings = mi_savings + (1 - mi_savings) * emi_savings
-print('Additional savings: %f' % emi_savings)
+print('Savings due to MI-RNN : %f' % mi_savings)
+print('Additional savings due to Early prediction: %f' % emi_savings)
 print("Total Savings: %f" % total_savings)
