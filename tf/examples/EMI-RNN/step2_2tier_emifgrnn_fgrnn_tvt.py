@@ -264,8 +264,10 @@ def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
 #df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Write model stats file
-with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) + '.csv'),'w') as out:
+with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + "_H2=" + str(NUM_HIDDEN_SECONDTIER)
+                                + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                                + '_bs=' + str(BATCH_SIZE) + '.csv'),'w') as out:
     csv_out=csv.writer(out)
     csv_out.writerow(['name','num'])
     for row in modelStats:

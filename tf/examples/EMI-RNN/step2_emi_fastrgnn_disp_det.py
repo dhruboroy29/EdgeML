@@ -222,7 +222,8 @@ print('Total Savings: %f' % (total_savings))
 
 # Write model stats file
 with open(os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) + '.csv'),'w') as out:
+                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                                + '_bs=' + str(BATCH_SIZE) + '.csv'),'w') as out:
     csv_out=csv.writer(out)
     csv_out.writerow(['name','num'])
     for row in modelStats:

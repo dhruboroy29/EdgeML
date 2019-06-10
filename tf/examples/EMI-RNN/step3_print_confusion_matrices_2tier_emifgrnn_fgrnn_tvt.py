@@ -275,8 +275,10 @@ def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
 devnull = open(os.devnull, 'r')
 acc = 0.0
 
-with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) + '.csv'),'r') as stats_csv:
+with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + "_H2=" + str(NUM_HIDDEN_SECONDTIER)
+                                + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                                + '_bs=' + str(BATCH_SIZE) + '.csv'),'r') as stats_csv:
     modelStats = csv.reader(stats_csv)
     header = next(modelStats)
     for val in modelStats:
