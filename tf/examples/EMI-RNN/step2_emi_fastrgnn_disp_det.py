@@ -222,9 +222,10 @@ print('Total Savings: %f' % (total_savings))
 #df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Write model stats file
-with open(os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+modelstatefile=os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
                                 + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
-                                + '_bs=' + str(BATCH_SIZE) + '.csv'),'w') as out:
+                                + '_bs=' + str(BATCH_SIZE) + '.csv')
+with open(modelstatefile,'w') as out:
     csv_out=csv.writer(out)
     csv_out.writerow(['name','num'])
     for row in modelStats:
@@ -278,9 +279,7 @@ for recall in recalllist:
 
 # If 2-class (Targets vs noise), append modelstats
 if NUM_OUTPUT == 2:
-    results_list.append(os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
-                                + '_bs=' + str(BATCH_SIZE) + '.csv'))
+    results_list.append(modelstatefile)
 
 # Print to output file
 out_handle = open(args.out, "a")
