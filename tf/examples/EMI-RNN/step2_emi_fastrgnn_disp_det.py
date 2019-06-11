@@ -276,6 +276,12 @@ results_list = [args.gN, args.uN, args.uR, args.wR, args.rnd, args.ep, args.it, 
 for recall in recalllist:
     results_list.append(recall)
 
+# If 2-class (Targets vs noise), append modelstats
+if NUM_OUTPUT == 2:
+    results_list.append(os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                                + '_bs=' + str(BATCH_SIZE) + '.csv'))
+
 # Print to output file
 out_handle = open(args.out, "a")
 # Write a line of output
