@@ -160,9 +160,15 @@ emiDriver.initializeSession(g1, config=config)
 devnull = open(os.devnull, 'r')
 acc = 0.0
 
+modelstatefile=os.path.join(data_dir, )
+
+
 # Write model stats file
-with open(os.path.join(data_dir,'48_16','modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) + '.csv'),'r') as stats_csv:
+with open(os.path.join(data_dir,'48_16','modelstats_O=' + str(NUM_OUTPUT)+ '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
+                       + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep='+ str(NUM_EPOCHS)
+                       + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                       + '_bs=' + str(BATCH_SIZE) + '.csv'),'r') as stats_csv:
+    
     modelStats = csv.reader(stats_csv)
     header = next(modelStats)
     for row in modelStats:

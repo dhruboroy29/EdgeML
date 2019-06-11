@@ -222,9 +222,11 @@ print('Total Savings: %f' % (total_savings))
 #df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Write model stats file
-modelstatefile=os.path.join(data_dir,'modelstats_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
-                                + '_bs=' + str(BATCH_SIZE) + '.csv')
+modelstatefile=os.path.join(data_dir, 'modelstats_O=' + str(NUM_OUTPUT)+ '_H=' + str(NUM_HIDDEN) + '_k=' + str(k) 
+                            + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep='+ str(NUM_EPOCHS)
+                            + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                            + '_bs=' + str(BATCH_SIZE) + '.csv')
+
 with open(modelstatefile,'w') as out:
     csv_out=csv.writer(out)
     csv_out.writerow(['name','num'])
@@ -242,7 +244,7 @@ for val in modelStats:
 
 emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
-                                                           minProb=0.99, keep_prob=1.0)
+                                                               minProb=0.99, keep_prob=1.0)
 
 bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
