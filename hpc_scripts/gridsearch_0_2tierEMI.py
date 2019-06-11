@@ -36,8 +36,6 @@ p3 = [16, 32, 64]
 
 out_folder = os.path.join('..', args.bat + '_hpc')
 out_suffix = ''
-if args.big:
-    out_suffix += '_big'
 if args.q15:
     out_suffix += '_q15'
 out_file = os.path.join('..', args.bat + '_hpc', args.type + out_suffix + '.sh')
@@ -47,7 +45,7 @@ def generate_trainstring(v):
     res_str = "python3 ../tf/examples/EMI-RNN/step2_2tier_emifgrnn_fgrnn_tvt.py -O " + str(args.O)\
               + " -gN " + str(v[0]) + " -uN " + str(v[1]) + " -bs " + str(v[2]) + " -H " + str(
         v[3]) + " -Dat " + args.base\
-              + " -rnd " + str(args.rnd) + " -it " + str(args.it) + " -ep" + str(args.ep) + " -out $outname"
+              + " -rnd " + str(args.rnd) + " -it " + str(args.it) + " -ep " + str(args.ep) + " -out $outname"
 
     return res_str
 
