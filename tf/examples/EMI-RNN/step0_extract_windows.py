@@ -20,7 +20,7 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
 
     assert isinstance(indirs, (str, list))
     assert isinstance(outdir, str)
-    assert stride == winlen
+    #assert stride == winlen
 
     # If single directory given, create list
     if isinstance(indirs, str):
@@ -30,8 +30,8 @@ def extract_windows(indirs, outdir, class_label, stride, winlen, samprate=256, m
     walk_length_stats_savepath = os.path.join(outdir,'walk_length_stats.csv')
 
     # Silently delete directory if it exists
-    if os.path.exists(outdir):
-        shutil.rmtree(outdir)
+    # if os.path.exists(outdir):
+    #   shutil.rmtree(outdir)
 
     # Make output directory
     outdir = os.path.join(outdir, 'winlen_' + str(winlen) + '_stride_' + str(stride), class_label)
@@ -126,7 +126,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=384,
+        stride=128,
         winlen=384)
 
     print('----------------Non-human BumbleBee Targets----------------')
@@ -146,7 +146,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=384,
+        stride=128,
         winlen=384)
 
     print('----------------BumbleBee Noise----------------')
@@ -156,7 +156,7 @@ if __name__=='__main__':
                     outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                            'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
                     class_label='Noise',
-                    stride=384,
+                    stride=128,
                     winlen=384)
     exit()
 
