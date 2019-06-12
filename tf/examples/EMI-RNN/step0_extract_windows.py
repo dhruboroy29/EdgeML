@@ -138,15 +138,15 @@ if __name__=='__main__':
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/combined_5 (Humans_Dogs)/Dog/',
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/kh_3 (Humans_Gym balls)/Dog/',
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/prb_2 (Humans_Gym balls)/Dog/',
-        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/osu_farm_meadow_may24-28_2016 (Cattle)/',
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/osu_farm_meadow_may24-28_2016_subset_113 (Cattle)/',
         '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/Radar_site1_hilltop (Cattle)/',
-        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/Radar_site2_creamery (Cattle)/'
+        '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Bumblebee/Targets/Radar_site2_creamery_subset_113 (Cattle)/'
     ],
 
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------BumbleBee Noise----------------')
@@ -156,7 +156,7 @@ if __name__=='__main__':
                     outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                            'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
                     class_label='Noise',
-                    stride=128,
+                    stride=384,
                     winlen=384)
     exit()
 
