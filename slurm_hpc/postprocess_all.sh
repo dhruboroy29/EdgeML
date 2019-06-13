@@ -3,12 +3,12 @@
 source activate tfgpu
 
 list_files=(
-            dispdetEMI_2class_winlen_256)
-            #dispdetEMI_2class_winlen_384
-            #dispdetEMI_2class_winlen_512
-            #dispdetEMI_2class_winlen_640
-            #dispdetEMI_2class_winlen_768
-            #)
+            dispdetEMI_2class_winlen_256
+            dispdetEMI_2class_winlen_384
+            dispdetEMI_2class_winlen_512
+            dispdetEMI_2class_winlen_640
+            dispdetEMI_2class_winlen_768
+            )
 
 list_hiddensize=(16 32 64)
 

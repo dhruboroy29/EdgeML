@@ -102,8 +102,10 @@ BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
 NUM_SUBINSTANCE = x_train.shape[1]
 print("x_train shape is:", x_train.shape)
 print("y_train shape is:", y_train.shape)
-print("x_test shape is:", x_val.shape)
-print("y_test shape is:", y_val.shape)
+print("x_test shape is:", x_test.shape)
+print("y_test shape is:", y_test.shape)
+print("x_val shape is:", x_val.shape)
+print("y_val shape is:", y_val.shape)
 
 # Adjustment for max k: number of subinstances
 if k==100:
