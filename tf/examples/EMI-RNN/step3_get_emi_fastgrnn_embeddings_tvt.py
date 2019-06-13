@@ -181,6 +181,9 @@ print('Best Model: ', modelPrefix,globalStep)
 
 graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 
+print(tf.contrib.graph_editor.get_tensors(tf.get_default_graph()))
+
+'''
 # Generate embeddings folder
 embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16_Winlen' + str(ORIGINAL_NUM_TIMESTEPS)
                              + '_embedding_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_bs=' + str(BATCH_SIZE)
@@ -213,4 +216,4 @@ np.save(val_emb_output_path, val_embeddings)
 np.save(os.path.join(embedding_dir,'embedding_val_lbls.npy'), np.amax(np.argmax(y_val, axis=2), axis=1))
 
 print('Embedding Generation Complete!')
-
+'''
