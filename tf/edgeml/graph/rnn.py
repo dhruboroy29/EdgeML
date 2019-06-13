@@ -1303,9 +1303,11 @@ class EMI_FastGRNN(EMI_RNN):
             outputs__, states = tf.nn.static_rnn(wrapped_cell, 
                                                  x, 
                                                  dtype=tf.float32)
+            
             outputs = []
             for output in outputs__:
                 outputs.append(tf.expand_dims(output, axis=1))
+            
             # Convert back to bag form
             outputs = tf.concat(outputs, axis=1, name='concat-output')
             dims = [-1, self.numSubinstance, self.numTimeSteps, self.numHidden]

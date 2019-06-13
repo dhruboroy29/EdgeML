@@ -1037,6 +1037,8 @@ class EMI_Driver:
         sess = self.__sess
         EMI_RNN_Scope = self._emiGraph._scope
 
+        #print(self._emiGraph.numSubinstance, self._emiGraph.numTimeSteps, self._emiGraph.numHidden)
+
         # Get the bag-output tensor from EMI_RNN_Scope
         embedding_tensor =  graph.get_tensor_by_name(EMI_RNN_Scope + 'bag-output:0')
 
@@ -1047,8 +1049,8 @@ class EMI_Driver:
         embedding_last_timestep = embedding_tensor[:, :, last_timestep_idx, :]
 
         # Reshape the output to produce bag-level embedding
-        bag_embedding_length = self._emiGraph.numSubinstance * self._emiGraph.numHidden
-        embeddingOp = tf.reshape(embedding_last_timestep, [-1, bag_embedding_length], name='embedding')
+        dims = [-1, self._emiGraph.numSubinstance * self._emiGraph.numHidden]
+        embeddingOp = tf.reshape(embedding_last_timestep, dims, name='embedding')
 
         if feedDict is None:
             feedDict = self.feedDictFunc(**kwargs)
@@ -1056,12 +1058,14 @@ class EMI_Driver:
         self._dataPipe.runInitializer(sess, x, y, batchSize, numEpochs=1)
 
         beginIdx = 0
-        embeddings = np.empty([x.shape[0], bag_embedding_length])
-        
+        embeddings = np.empty([x.shape[0], self._emiGraph.numSubinstance * self._emiGraph.numHidden])
+
         while True:
             try:
-                embList = sess.run(embeddingOp, feed_dict=feedDict)
-                endIdx = beginIdx + embList.shape[0]
+                embList = sess.run(embedding_tensor, feed_dict=feedDict)
+                print(embList.shape)
+                exit(0)
+                endIdx = x.shape[0] if (beginIdx + embList.shape[0]) > x.shape[0] else (beginIdx + embList.shape[0])
                 embeddings[beginIdx:endIdx, :] = embList
                 beginIdx = endIdx
 

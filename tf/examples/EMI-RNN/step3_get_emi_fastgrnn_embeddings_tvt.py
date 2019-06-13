@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import time
 import csv
+from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../tf/')
@@ -86,9 +87,12 @@ NUM_ROUNDS = args.rnd #10
 data_dir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
            #'Raw_winlen_256_stride_171/48_16/'
 
-x_train, y_train = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_train.npy')), np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_train.npy'))
-x_test, y_test = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_test.npy')), np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_test.npy'))
-x_val, y_val = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_val.npy')), np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_val.npy'))
+x_train, y_train = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_train.npy')), \
+                   np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_train.npy'))
+x_test, y_test = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_test.npy')), \
+                 np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_test.npy'))
+x_val, y_val = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_val.npy')), \
+               np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_val.npy'))
 
 # BAG_TEST, BAG_TRAIN, BAG_VAL represent bag_level labels. These are used for the label update
 # step of EMI/MI RNN
@@ -160,9 +164,6 @@ emiDriver.initializeSession(g1, config=config)
 devnull = open(os.devnull, 'r')
 acc = 0.0
 
-modelstatefile=os.path.join(data_dir, )
-
-
 # Write model stats file
 with open(os.path.join(data_dir,'48_16','modelstats_O=' + str(NUM_OUTPUT)+ '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
                        + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep='+ str(NUM_EPOCHS)
@@ -176,13 +177,15 @@ with open(os.path.join(data_dir,'48_16','modelstats_O=' + str(NUM_OUTPUT)+ '_H='
         if float(c_acc) > acc:
             round_, acc, modelPrefix, globalStep = int(c_round_), float(c_acc), c_modelPrefix, int(c_globalStep)
 
-print('Best Model Global Step: ', globalStep)
+print('Best Model: ', modelPrefix,globalStep)
 
 graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 
 # Generate embeddings folder
-embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','embedding_H=' + str(NUM_HIDDEN) +
-                             '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS) + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS))
+embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16_Winlen' + str(ORIGINAL_NUM_TIMESTEPS)
+                             + '_embedding_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_bs=' + str(BATCH_SIZE)
+                             + '_ep='+ str(NUM_EPOCHS) + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS))
+
 os.makedirs(embedding_dir, exist_ok=True)
 
 # Get embeddings of Train data
