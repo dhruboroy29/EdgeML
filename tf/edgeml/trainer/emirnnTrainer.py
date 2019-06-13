@@ -1062,9 +1062,7 @@ class EMI_Driver:
 
         while True:
             try:
-                embList = sess.run(embedding_tensor, feed_dict=feedDict)
-                print(embList.shape)
-                exit(0)
+                embList = sess.run(embeddingOp, feed_dict=feedDict)
                 endIdx = x.shape[0] if (beginIdx + embList.shape[0]) > x.shape[0] else (beginIdx + embList.shape[0])
                 embeddings[beginIdx:endIdx, :] = embList
                 beginIdx = endIdx

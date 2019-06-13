@@ -179,11 +179,12 @@ with open(os.path.join(data_dir,'48_16','modelstats_O=' + str(NUM_OUTPUT)+ '_H='
 
 print('Best Model: ', modelPrefix,globalStep)
 
+#modelPrefix='/scratch/sk7898/model-fgrnn/1560443556/'
+#globalStep=1045
+
 graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+#print(tf.contrib.graph_editor.get_tensors(tf.get_default_graph()))
 
-print(tf.contrib.graph_editor.get_tensors(tf.get_default_graph()))
-
-'''
 # Generate embeddings folder
 embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16_Winlen' + str(ORIGINAL_NUM_TIMESTEPS)
                              + '_embedding_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_bs=' + str(BATCH_SIZE)
@@ -216,4 +217,4 @@ np.save(val_emb_output_path, val_embeddings)
 np.save(os.path.join(embedding_dir,'embedding_val_lbls.npy'), np.amax(np.argmax(y_val, axis=2), axis=1))
 
 print('Embedding Generation Complete!')
-'''
+
