@@ -1,7 +1,7 @@
 list_files=(
             dispdetEMI_2class_winlen_256
             dispdetEMI_2class_winlen_384
-            dispdetEMI_2class_winlen_512
+            #dispdetEMI_2class_winlen_512
             #dispdetEMI_2class_winlen_640
             #dispdetEMI_2class_winlen_768
             )
@@ -21,9 +21,11 @@ for filePrefix in ${list_files[@]}; do
 	shFile=${filePrefix}_${i}_spl.sh
 
 	if [ ! -f "$outFile" ]; then
-	    echo "Adding $outFile to remaining jobs!"
+	    #echo "Adding $outFile to remaining jobs!"
 	    echo "sbatch -t 1-0 --export=filename=../slurm_hpc/${shFile} batch_job.sbatch" >> $restartFile
 	    echo "sleep 1" >> $restartFile
 	fi
     done
 done
+
+echo "Run the remaining jobs: 'sh 3_SUBMIT_dispdetEMI_2class_remaining_jobs.sh'"
