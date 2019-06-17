@@ -100,6 +100,10 @@ print("y_train shape is:", y_train.shape)
 print("x_test shape is:", x_val.shape)
 print("y_test shape is:", y_val.shape)
 
+# Adjustment for max k: number of subinstances
+if k==100:
+    k = x_train.shape[1]
+
 
 # Define the linear secondary classifier
 def createExtendedGraph(self, baseOutput, *args, **kwargs):
