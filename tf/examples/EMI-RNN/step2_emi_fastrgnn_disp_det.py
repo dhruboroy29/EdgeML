@@ -21,9 +21,7 @@ tf.set_random_seed(42)
 import edgeml.utils as utils
 from edgeml.graph.rnn import EMI_DataPipeline
 from edgeml.graph.rnn import EMI_FastGRNN
-from edgeml.graph.rnn import EMI_FastRNN
 from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
-import edgeml.utils
 
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-FastGRNN')
 parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances. 100 for max possible')
