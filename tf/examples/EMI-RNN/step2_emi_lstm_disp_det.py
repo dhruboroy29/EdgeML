@@ -4,8 +4,8 @@ import sys
 import tensorflow as tf
 import numpy as np
 import argparse
-import edgeml.utils as utils
 import time
+import csv
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../tf/')
@@ -85,9 +85,9 @@ except OSError as exc:  # Python >2.5
 data_dir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
            #'Raw_winlen_256_stride_171/48_16/'
 
-x_train, y_train = np.load(data_dir + 'x_train.npy'), np.load(data_dir + 'y_train.npy')
-x_test, y_test = np.load(data_dir + 'x_test.npy'), np.load(data_dir + 'y_test.npy')
-x_val, y_val = np.load(data_dir + 'x_val.npy'), np.load(data_dir + 'y_val.npy')
+x_train, y_train = np.load(os.path.join(data_dir,'x_train.npy')), np.load(os.path.join(data_dir,'y_train.npy'))
+x_test, y_test = np.load(os.path.join(data_dir,'x_test.npy')), np.load(os.path.join(data_dir,'y_test.npy'))
+x_val, y_val = np.load(os.path.join(data_dir,'x_val.npy')), np.load(os.path.join(data_dir,'y_val.npy'))
 
 # BAG_TEST, BAG_TRAIN, BAG_VAL represent bag_level labels. These are used for the label update
 # step of EMI/MI RNN
