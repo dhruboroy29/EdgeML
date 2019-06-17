@@ -8,7 +8,8 @@ import edgeml.utils as utils
 import time
 
 # Making sure edgeml is part of python path
-sys.path.insert(0, '../../')
+sys.path.insert(0, '../tf/')
+sys.path.insert(0, 'tf/')
 os.environ['CUDA_VISIBLE_DEVICES'] ='0'
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -29,7 +30,7 @@ parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
 parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
-parser.add_argument('-O', type=int, default=2, help='Number of outputs')
+parser.add_argument('-O', type=int, default=3, help='Number of outputs')
 parser.add_argument('-d', type=bool, default=True, help='Dropout?')
 parser.add_argument('-kp', type=float, default=0.75, help='Keep probability')
 parser.add_argument('-bs', type=int, default=32, help='Batch size')
@@ -37,6 +38,7 @@ parser.add_argument('-ep', type=int, default=3, help='Number of epochs per itera
 parser.add_argument('-it', type=int, default=4, help='Number of iterations per round')
 parser.add_argument('-rnd', type=int, default=10, help='Number of rounds')
 parser.add_argument('-Dat', type=str, help='Data directory')
+parser.add_argument('-out', type=str, default=sys.stdout, help='Output filename')
 
 args = parser.parse_args()
 
@@ -200,32 +202,60 @@ print('Total Savings: %f' % (total_savings))
 
 
 # A slightly more detailed analysis method is provided.
-df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
+#df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Pick the best model
 devnull = open(os.devnull, 'r')
+acc = 0.0
+
 for val in modelStats:
-    round_, acc, modelPrefix, globalStep = val
-    emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
-    predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
+    c_round_, c_acc, c_modelPrefix, c_globalStep = val
+    if c_acc > acc:
+        round_, acc, modelPrefix, globalStep = c_round_, c_acc, c_modelPrefix, c_globalStep
+
+emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
 
-    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
-    print("Round: %2d, Validation accuracy: %.4f" % (round_, acc), end='')
-    print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
+bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
+print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
+print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
 
-    # Print confusion matrix
-    print('\n')
-    bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
-    utils.printFormattedConfusionMatrix(bagcmatrix)
-    print('\n')
+test_acc = np.mean((bagPredictions == BAG_TEST).astype(int))
 
-    # Print model size
-    metaname = modelPrefix + '-%d.meta' % globalStep
-    utils.getModelSize(metaname)
-    
-    mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
-    emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-    total_savings = mi_savings + (1 - mi_savings) * emi_savings
-    print('Additional savings: %f' % emi_savings)
-    print("Total Savings: %f" % total_savings)
+# Print confusion matrix
+print('\n')
+bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
+utils.printFormattedConfusionMatrix(bagcmatrix)
+print('\n')
+
+# Get class recalls
+recalllist = np.sum(bagcmatrix, axis=0)
+recalllist = [bagcmatrix[i][i] / x if x !=
+                  0 else -1 for i, x in enumerate(recalllist)]
+
+# Print model size
+metaname = modelPrefix + '-%d.meta' % globalStep
+modelsize = utils.getModelSize(metaname)
+
+mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
+total_savings = mi_savings + (1 - mi_savings) * emi_savings
+print('Additional savings: %f' % emi_savings)
+print("Total Savings: %f" % total_savings)
+
+# Create result string
+results_list = [USE_DROPOUT, KEEP_PROB, args.rnd, args.ep, args.it, args.bs, args.H,
+       k, total_savings, modelsize, acc, test_acc]
+for recall in recalllist:
+    results_list.append(recall)
+
+# If 2-class (Targets vs noise), append modelstats
+#if NUM_OUTPUT == 2:
+#    results_list.append(modelstatefile)
+
+# Print to output file
+out_handle = open(args.out, "a")
+# Write a line of output
+out_handle.write('\t'.join(map(str, results_list)) + '\n')
+out_handle.close()
