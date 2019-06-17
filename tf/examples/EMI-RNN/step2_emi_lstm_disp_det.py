@@ -18,10 +18,10 @@ np.random.seed(42)
 tf.set_random_seed(42)
 
 # MI-RNN and EMI-RNN imports
+import edgeml.utils as utils
 from edgeml.graph.rnn import EMI_DataPipeline
 from edgeml.graph.rnn import EMI_BasicLSTM
 from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
-import edgeml.utils
 
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-LSTM')
 parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances')
