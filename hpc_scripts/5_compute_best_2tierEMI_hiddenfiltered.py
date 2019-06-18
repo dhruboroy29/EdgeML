@@ -33,7 +33,7 @@ idx = df.loc[df['Acc'].idxmax()].tolist()
 
 print('Best Test accuracy:', str(max))
 print('Corresponding params')
-print("\t".join([str(i) for i in ['gN', 'uN', 'uR', 'wR', 'rnd', 'ep', 'it', 'bs', 'H', 'H2', 'k']]))
+print("\t".join([str(i) for i in ['gN', 'uN', 'uR', 'wR', 'rnd', 'ep', 'it', 'bs', 'H', 'H2', 'k', 'total_savings', 'modelsize', 'Val_Acc', 'Acc', 'Recall0', 'Recall1', 'Recall2']]))
 print("\t".join([str(i) for i in idx]))
 
 # Create rerun string for best hyperparams
