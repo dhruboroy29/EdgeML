@@ -11,7 +11,7 @@ filename = sys.argv[1]
 hiddensizefilter =  sys.argv[2]
 
 df = pd.read_table(filename, header=None,
-                   names=['gN', 'uN', 'uR', 'wR', 'rnd', 'ep', 'it', 'bs', 'H', 'k', 'total_savings', 'modelsize', 'Val_Acc', 'Acc', 'Recall0', 'Recall1', 'Recall2'])
+                   names=['use_dropout', 'keep_prob', 'rnd', 'ep', 'it', 'bs', 'H', 'k', 'total_savings', 'modelsize', 'Val_Acc', 'Acc', 'Recall0', 'Recall1', 'Recall2'])
 # Only taking rows with valid accuracy
 df['Acc'].replace('', np.nan, inplace=True)
 df.dropna(subset=['Acc'], inplace=True)
@@ -32,7 +32,7 @@ idx = df.loc[df['Acc'].idxmax()].tolist()
 
 print('Best Test accuracy:', str(max))
 print('Corresponding params')
-print("\t".join([str(i) for i in ['gN', 'uN', 'uR', 'wR', 'rnd', 'ep', 'it', 'bs', 'H', 'k', 'total_savings', 'modelsize', 'Val_Acc', 'Acc', 'Recall0', 'Recall1', 'Recall2']]))
+print("\t".join([str(i) for i in ['use_dropout', 'keep_prob', 'rnd', 'ep', 'it', 'bs', 'H', 'k', 'total_savings', 'modelsize', 'Val_Acc', 'Acc', 'Recall0', 'Recall1', 'Recall2']]))
 print("\t".join([str(i) for i in idx]))
 
 # Create rerun string for best hyperparams

@@ -3,11 +3,11 @@
 source activate tfgpu
 
 list_files=(
-            singleEMI_3class_winlen_256
-            singleEMI_3class_winlen_384
-            singleEMI_3class_winlen_512
-            singleEMI_3class_winlen_640
-            singleEMI_3class_winlen_768
+            lstmEMI_3class_winlen_256
+            lstmEMI_3class_winlen_384
+            lstmEMI_3class_winlen_512
+            lstmEMI_3class_winlen_640
+            lstmEMI_3class_winlen_768
             )
 
 list_hiddensize=(16 32 64)
@@ -21,6 +21,6 @@ for h in ${list_hiddensize[@]}; do
     echo -e "\n\n\t\t-------------------- Hidden size = $h ---------------------"
     for l in ${list_files[@]}; do
         echo -e "\n\t----- Processing $l -----"
-        python3 ../hpc_scripts/5_compute_best_EMI_hiddenfiltered.py $l.out $h
+        python3 ../hpc_scripts/5_compute_best_lstmEMI_hiddenfiltered.py $l.out $h
     done
 done
