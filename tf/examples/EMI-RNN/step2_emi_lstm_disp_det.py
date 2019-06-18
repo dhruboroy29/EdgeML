@@ -4,11 +4,12 @@ import sys
 import tensorflow as tf
 import numpy as np
 import argparse
-import edgeml.utils as utils
 import time
+import csv
 
 # Making sure edgeml is part of python path
-sys.path.insert(0, '../../')
+sys.path.insert(0, '../tf/')
+sys.path.insert(0, 'tf/')
 os.environ['CUDA_VISIBLE_DEVICES'] ='0'
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -17,10 +18,10 @@ np.random.seed(42)
 tf.set_random_seed(42)
 
 # MI-RNN and EMI-RNN imports
+import edgeml.utils as utils
 from edgeml.graph.rnn import EMI_DataPipeline
 from edgeml.graph.rnn import EMI_BasicLSTM
 from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
-import edgeml.utils
 
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-LSTM')
 parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances')
@@ -29,7 +30,7 @@ parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
 parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
-parser.add_argument('-O', type=int, default=2, help='Number of outputs')
+parser.add_argument('-O', type=int, default=3, help='Number of outputs')
 parser.add_argument('-d', type=bool, default=True, help='Dropout?')
 parser.add_argument('-kp', type=float, default=0.75, help='Keep probability')
 parser.add_argument('-bs', type=int, default=32, help='Batch size')
@@ -37,6 +38,7 @@ parser.add_argument('-ep', type=int, default=3, help='Number of epochs per itera
 parser.add_argument('-it', type=int, default=4, help='Number of iterations per round')
 parser.add_argument('-rnd', type=int, default=10, help='Number of rounds')
 parser.add_argument('-Dat', type=str, help='Data directory')
+parser.add_argument('-out', type=str, default=sys.stdout, help='Output filename')
 
 args = parser.parse_args()
 
@@ -83,9 +85,9 @@ except OSError as exc:  # Python >2.5
 data_dir = args.Dat #'/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
            #'Raw_winlen_256_stride_171/48_16/'
 
-x_train, y_train = np.load(data_dir + 'x_train.npy'), np.load(data_dir + 'y_train.npy')
-x_test, y_test = np.load(data_dir + 'x_test.npy'), np.load(data_dir + 'y_test.npy')
-x_val, y_val = np.load(data_dir + 'x_val.npy'), np.load(data_dir + 'y_val.npy')
+x_train, y_train = np.load(os.path.join(data_dir,'x_train.npy')), np.load(os.path.join(data_dir,'y_train.npy'))
+x_test, y_test = np.load(os.path.join(data_dir,'x_test.npy')), np.load(os.path.join(data_dir,'y_test.npy'))
+x_val, y_val = np.load(os.path.join(data_dir,'x_val.npy')), np.load(os.path.join(data_dir,'y_val.npy'))
 
 # BAG_TEST, BAG_TRAIN, BAG_VAL represent bag_level labels. These are used for the label update
 # step of EMI/MI RNN
@@ -97,6 +99,10 @@ print("x_train shape is:", x_train.shape)
 print("y_train shape is:", y_train.shape)
 print("x_test shape is:", x_val.shape)
 print("y_test shape is:", y_val.shape)
+
+# Adjustment for max k: number of subinstances
+if k==100:
+    k = x_train.shape[1]
 
 
 # Define the linear secondary classifier
@@ -200,32 +206,60 @@ print('Total Savings: %f' % (total_savings))
 
 
 # A slightly more detailed analysis method is provided.
-df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
+#df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Pick the best model
 devnull = open(os.devnull, 'r')
+acc = 0.0
+
 for val in modelStats:
-    round_, acc, modelPrefix, globalStep = val
-    emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
-    predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
+    c_round_, c_acc, c_modelPrefix, c_globalStep = val
+    if c_acc > acc:
+        round_, acc, modelPrefix, globalStep = c_round_, c_acc, c_modelPrefix, c_globalStep
+
+emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
 
-    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
-    print("Round: %2d, Validation accuracy: %.4f" % (round_, acc), end='')
-    print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
+bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
+print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
+print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
 
-    # Print confusion matrix
-    print('\n')
-    bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
-    utils.printFormattedConfusionMatrix(bagcmatrix)
-    print('\n')
+test_acc = np.mean((bagPredictions == BAG_TEST).astype(int))
 
-    # Print model size
-    metaname = modelPrefix + '-%d.meta' % globalStep
-    utils.getModelSize(metaname)
-    
-    mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
-    emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-    total_savings = mi_savings + (1 - mi_savings) * emi_savings
-    print('Additional savings: %f' % emi_savings)
-    print("Total Savings: %f" % total_savings)
+# Print confusion matrix
+print('\n')
+bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
+utils.printFormattedConfusionMatrix(bagcmatrix)
+print('\n')
+
+# Get class recalls
+recalllist = np.sum(bagcmatrix, axis=0)
+recalllist = [bagcmatrix[i][i] / x if x !=
+                  0 else -1 for i, x in enumerate(recalllist)]
+
+# Print model size
+metaname = modelPrefix + '-%d.meta' % globalStep
+modelsize = utils.getModelSize(metaname)
+
+mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
+total_savings = mi_savings + (1 - mi_savings) * emi_savings
+print('Additional savings: %f' % emi_savings)
+print("Total Savings: %f" % total_savings)
+
+# Create result string
+results_list = [USE_DROPOUT, KEEP_PROB, args.rnd, args.ep, args.it, args.bs, args.H,
+       k, total_savings, modelsize, acc, test_acc]
+for recall in recalllist:
+    results_list.append(recall)
+
+# If 2-class (Targets vs noise), append modelstats
+#if NUM_OUTPUT == 2:
+#    results_list.append(modelstatefile)
+
+# Print to output file
+out_handle = open(args.out, "a")
+# Write a line of output
+out_handle.write('\t'.join(map(str, results_list)) + '\n')
+out_handle.close()
