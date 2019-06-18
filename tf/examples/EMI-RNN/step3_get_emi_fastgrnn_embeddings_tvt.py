@@ -189,8 +189,14 @@ graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=
 
 # Generate embeddings folder
 embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16_Winlen' + str(ORIGINAL_NUM_TIMESTEPS)
-                             + '_embedding_H=' + str(NUM_HIDDEN) + '_k=' + str(k) + '_bs=' + str(BATCH_SIZE)
-                             + '_ep='+ str(NUM_EPOCHS) + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS))
+                             + '_gN=' + GATE_NL 
+                             + '_uN=' + UPDATE_NL 
+                             + '_embedding_H=' + str(NUM_HIDDEN)
+                             + '_k=' + str(k) 
+                             + '_bs=' + str(BATCH_SIZE)
+                             + '_ep='+ str(NUM_EPOCHS) 
+                             + '_it=' + str(NUM_ITER) 
+                             + '_rnd=' + str(NUM_ROUNDS))
 
 os.makedirs(embedding_dir, exist_ok=True)
 
