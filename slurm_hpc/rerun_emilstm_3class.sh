@@ -1,0 +1,16 @@
+outname=`echo $0 | sed "s/.sh/.out/g"`
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 16 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_256_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 0.5 -bs 128 -H 16 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_384_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 16 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_512_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 16 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_640_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 16 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_768_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 32 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_256_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 32 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_384_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 128 -H 32 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_512_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 32 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_640_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 0.75 -bs 64 -H 32 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_768_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 64 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_256_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 128 -H 64 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_384_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 128 -H 64 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_512_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 128 -H 64 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_640_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
+python3 ../tf/examples/EMI-RNN/step2_emi_lstm_disp_det.py -O 3 -kp 1.0 -bs 64 -H 64 -Dat /scratch/dr2915/Bumblebee/bb_3class_winlen_768_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -k 100 -out $outname
