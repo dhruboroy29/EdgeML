@@ -796,11 +796,12 @@ class EMI_Driver:
               file=redirFile)
         patience = 1
         patienceCount = 0
-        min_delta = 0.001
-        lossHistory = []
+        min_delta = 1e-4
         modelStats = []
         stop = False
         for cround in range(numRounds):
+            # Refresh lossHistory at the beginning of each round
+            lossHistory = []
             if not stop:
                 feedDict = self.feedDictFunc(inference=False, **kwargs)
                 print("Round: %d" % cround, file=redirFile)
@@ -850,8 +851,8 @@ class EMI_Driver:
                         patienceCount += 1
                     
                     if patienceCount > patience:
-                        print("Early stopping...")
-                        stop = True
+                        print("Early stopping...: iter: ", citer)
+                        #stop = True
                         break
 
                 # Update y for the current round
