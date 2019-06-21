@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import time
 import csv
+import getpass
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../tf/')
@@ -82,7 +83,7 @@ NUM_ROUNDS = args.rnd #10
 #LEARNING_RATE=0.001
 
 # A staging directory to store models
-MODEL_PREFIX = '/scratch/sk7898/model-fgrnn/'+str(int(time.time()))+'/'
+MODEL_PREFIX = '/scratch/' + getpass.getuser() +'/model-fgrnn/'+str(int(time.time()))+'/'
 
 # Make model directory
 try:

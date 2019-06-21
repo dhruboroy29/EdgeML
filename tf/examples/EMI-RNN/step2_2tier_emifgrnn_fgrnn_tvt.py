@@ -1,6 +1,8 @@
 import os
 import errno
 import sys
+
+import getpass
 import tensorflow as tf
 import numpy as np
 import argparse
@@ -89,7 +91,7 @@ NUM_ROUNDS = args.rnd #10
 #LEARNING_RATE=0.001
 
 # A staging directory to store models
-MODEL_PREFIX = '/tmp/models/model-fgrnn/'+str(int(time.time()))+'/'
+MODEL_PREFIX = '/scratch/' + getpass.getuser() +'/model-fgrnn/'+str(int(time.time()))+'/'
 
 # Make model directory
 try:
