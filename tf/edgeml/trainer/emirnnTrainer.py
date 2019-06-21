@@ -795,13 +795,13 @@ class EMI_Driver:
         print("Training with MI-RNN loss for %d rounds" % emiStep,
               file=redirFile)
         patience = 1
-        patienceCount = 0
         min_delta = 1e-4
         modelStats = []
         stop = False
         for cround in range(numRounds):
-            # Refresh lossHistory at the beginning of each round
+            # Refresh lossHistory and patienceCount at the beginning of each round
             lossHistory = []
+            patienceCount = 0
             if not stop:
                 feedDict = self.feedDictFunc(inference=False, **kwargs)
                 print("Round: %d" % cround, file=redirFile)
