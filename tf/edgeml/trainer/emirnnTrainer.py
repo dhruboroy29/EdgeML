@@ -794,59 +794,82 @@ class EMI_Driver:
         emiStep = numRounds - emiSteps
         print("Training with MI-RNN loss for %d rounds" % emiStep,
               file=redirFile)
+        patience = 1
+        patienceCount = 0
+        min_delta = 0.001
+        lossHistory = []
         modelStats = []
+        stop = False
         for cround in range(numRounds):
-            feedDict = self.feedDictFunc(inference=False, **kwargs)
-            print("Round: %d" % cround, file=redirFile)
-            if cround == emiStep:
-                print("Switching to EMI-Loss function", file=redirFile)
-                if lossIndicator is not None:
-                    raise NotImplementedError('TODO')
-                else:
-                    nTs = self._emiTrainer.numTimeSteps
-                    nOut = self._emiTrainer.numOutput
-                    lossIndicator = np.ones([nTs, nOut])
-                    sess.run(self._emiTrainer.lossIndicatorAssignOp,
-                         feed_dict={self._emiTrainer.lossIndicatorPlaceholder:
-                                    lossIndicator})
-            valAccList, globalStepList = [], []
-            # Train the best model for the current round
-            for citer in range(numIter):
-                self._dataPipe.runInitializer(sess, x_train, curr_y,
-                                               batchSize, numEpochs)
-                numBatches = int(np.ceil(len(x_train) / batchSize))
-                self._emiTrainer.trainModel(sess, echoCB=self.fancyEcho,
-                                             numBatches=numBatches,
-                                             feedDict=feedDict,
-                                             redirFile=redirFile)
-                acc = self.runOps([self._emiTrainer.accTilda],
-                                  x_val, y_val, batchSize, inference=True)
-                acc = np.mean(np.reshape(np.array(acc), -1))
-                print(" Val acc %2.5f | " % acc, end='', file=redirFile)
-                self.__graphManager.checkpointModel(self.__saver, sess,
-                                                    modelPrefix,
-                                                    self.__globalStep,
-                                                    redirFile=redirFile)
-                valAccList.append(acc)
-                globalStepList.append((modelPrefix, self.__globalStep))
-                self.__globalStep += 1
+            if not stop:
+                feedDict = self.feedDictFunc(inference=False, **kwargs)
+                print("Round: %d" % cround, file=redirFile)
+                if cround == emiStep:
+                    print("Switching to EMI-Loss function", file=redirFile)
+                    if lossIndicator is not None:
+                        raise NotImplementedError('TODO')
+                    else:
+                        nTs = self._emiTrainer.numTimeSteps
+                        nOut = self._emiTrainer.numOutput
+                        lossIndicator = np.ones([nTs, nOut])
+                        sess.run(self._emiTrainer.lossIndicatorAssignOp,
+                                 feed_dict={self._emiTrainer.lossIndicatorPlaceholder:
+                                            lossIndicator})
+                valAccList, globalStepList = [], []
+                # Train the best model for the current round
+                for citer in range(numIter):
+                    self._dataPipe.runInitializer(sess, x_train, curr_y,
+                                                  batchSize, numEpochs)
+                    numBatches = int(np.ceil(len(x_train) / batchSize))
+                    self._emiTrainer.trainModel(sess, echoCB=self.fancyEcho,
+                                                numBatches=numBatches,
+                                                feedDict=feedDict,
+                                                redirFile=redirFile)
+                    acc = self.runOps([self._emiTrainer.accTilda],
+                                      x_val, y_val, batchSize, inference=True)
 
-            # Update y for the current round
-            ## Load the best val-acc model
-            argAcc = np.argmax(valAccList)
-            resPrefix, resStep = globalStepList[argAcc]
-            modelStats.append((cround, np.max(valAccList),
-                               resPrefix, resStep))
-            self.loadSavedGraphToNewSession(resPrefix, resStep, redirFile)
-            sess = self.getCurrentSession()
-            feedDict = self.feedDictFunc(inference=True, **kwargs)
-            smxOut = self.runOps([self._emiTrainer.softmaxPredictions],
+                    loss = self.runOps([self._emiTrainer.lossOp],
+                                       x_val, y_val, batchSize, inference=True)
+
+                    acc = np.mean(np.reshape(np.array(acc), -1))
+                    loss = np.mean(np.reshape(np.array(loss), -1))
+                    print(" Val acc %2.5f | " % acc, end='', file=redirFile)
+                    self.__graphManager.checkpointModel(self.__saver, sess,
+                                                        modelPrefix,
+                                                        self.__globalStep,
+                                                        redirFile=redirFile)
+                    valAccList.append(acc)
+                    lossHistory.append(loss)
+                    print(lossHistory)
+                    globalStepList.append((modelPrefix, self.__globalStep))
+                    self.__globalStep += 1
+                
+                    if citer > 0 and (lossHistory[citer-1] - lossHistory[citer]) > min_delta:
+                        patienceCount = 0
+                    else:
+                        patienceCount += 1
+                    
+                    if patienceCount > patience:
+                        print("Early stopping...")
+                        stop = True
+                        break
+
+                # Update y for the current round
+                ## Load the best val-acc model
+                argAcc = np.argmax(valAccList)
+                resPrefix, resStep = globalStepList[argAcc]
+                modelStats.append((cround, np.max(valAccList),
+                                   resPrefix, resStep))
+                self.loadSavedGraphToNewSession(resPrefix, resStep, redirFile)
+                sess = self.getCurrentSession()
+                feedDict = self.feedDictFunc(inference=True, **kwargs)
+                smxOut = self.runOps([self._emiTrainer.softmaxPredictions],
                                      x_train, y_train, batchSize, feedDict)
-            smxOut= [np.array(smxOut[i][0]) for i in range(len(smxOut))]
-            smxOut = np.concatenate(smxOut)[:, :, -1, :]
-            newY = updatePolicyFunc(curr_y, smxOut, bag_train,
-                                    numClasses, **kwargs)
-            currY = newY
+                smxOut= [np.array(smxOut[i][0]) for i in range(len(smxOut))]
+                smxOut = np.concatenate(smxOut)[:, :, -1, :]
+                newY = updatePolicyFunc(curr_y, smxOut, bag_train,
+                                        numClasses, **kwargs)
+                currY = newY
         return currY, modelStats
 
     def loadSavedGraphToNewSession(self, modelPrefix, globalStep,
