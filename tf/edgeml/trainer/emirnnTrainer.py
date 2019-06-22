@@ -184,16 +184,21 @@ class EMI_Trainer_2Tier:
 
     def __createTrainOp(self):
         with tf.name_scope(self.scope):
+            # Freeze upper RNN
             trainOp = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/EMI-FastGRNN-Cell/FastGRNNcell/') + tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES, scope='W1') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                   scope='B1'))
+
+            # Then, freeze lower EMI
             trainOp_upper = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_upper, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/FastGRNN/FastGRNNcell/') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                        scope='W2') + tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES, scope='B2'))
+
+            # Finally (if training jointly), train all variables
             trainOp_joint = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_joint)
         return trainOp, trainOp_upper, trainOp_joint
 
@@ -913,7 +918,7 @@ class EMI_Driver:
         assert fracEMI >= 0
         assert fracEMI <= 1
 
-        # Run lower EMI
+        # Run lower EMI, freezing upper RNN
         print("\t\tTraining lower EMI for  %d rounds, %d iterations, %d epochs" % (numRounds, numIter, numEpochs),
               file=redirFile)
         emiSteps = int(fracEMI * numRounds)
@@ -998,7 +1003,7 @@ class EMI_Driver:
                                     numClasses, **kwargs)
             currY = newY
 
-        # Run upper RNN for iter*epochs
+        # Run upper RNN for iter*epochs, freezing lower EMI
         print("\t\tTraining upper RNN for  %d epochs" % (numIter * numEpochs),
               file=redirFile)
         feedDict = self.feedDictFunc(inference=False, **kwargs)
