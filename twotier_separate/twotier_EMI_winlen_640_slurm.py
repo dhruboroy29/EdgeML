@@ -5,7 +5,7 @@ sys.path.append('../')
 
 ######################### ONLY MODIFY THESE VALUES #########################
 # Number of splits of hyperparam file
-winlen = 256
+winlen = 640
 
 num_splits='24'
 
@@ -41,7 +41,7 @@ os.chdir('../hpc_scripts')
 
 # Generate gridsearch
 print('###### hpc_scripts/gridsearch #####')
-sys.argv=init_argv+['-bat', bat_sys, '-type', prefix, '-base', base]
+sys.argv=init_argv+['-bat', bat_sys, '-type', prefix, '-base', base, '-ots', str(winlen)]
 import hpc_scripts.gridsearch_0_2tierEMI
 
 # Split hyperparam file
