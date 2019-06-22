@@ -443,7 +443,11 @@ class EMI_Trainer_2Tier:
         '''
         self.graphCreated = False
         self.lossOp = None
+        self.lossOp_upper = None
+        self.lossOp_joint = None
         self.trainOp = None
+        self.trainOp_upper = None
+        self.trainOp_joint = None
         self.lossIndicatorTensor = None
         self.softmaxPredictions = None
         self.uppersoftmaxPredictions = None
