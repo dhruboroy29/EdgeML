@@ -189,12 +189,12 @@ class EMI_Trainer_2Tier:
                 scope='rnn/fast_grnn_cell/EMI-FastGRNN-Cell/FastGRNNcell/') + tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES, scope='W1') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                   scope='B1'))
-            trainOp_upper = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp, var_list=tf.get_collection(
+            trainOp_upper = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_upper, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/FastGRNN/FastGRNNcell/') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                        scope='W2') + tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES, scope='B2'))
-            trainOp_joint = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp)
+            trainOp_joint = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_joint)
         return trainOp, trainOp_upper, trainOp_joint
 
     def _createGraph(self, predicted, predicted_upper, target, target_upper):
