@@ -192,7 +192,7 @@ class EMI_Trainer_2Tier:
                                                                                   scope='B_l'))
 
             # Then, freeze lower EMI
-            trainOp_upper = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_upper, var_list=tf.get_collection(
+            trainOp_upper = tf.train.AdamOptimizer(self.stepSize*10).minimize(self.lossOp_upper, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/FastGRNN/FastGRNNcell/') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                        scope='W_u') + tf.get_collection(
