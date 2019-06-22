@@ -912,6 +912,10 @@ class EMI_Driver:
         curr_y = np.array(y_train)
         assert fracEMI >= 0
         assert fracEMI <= 1
+
+        # Run lower EMI
+        print("\t\tTraining lower EMI for  %d rounds, %d iterations, %d epochs" % (numRounds, numIter, numEpochs),
+              file=redirFile)
         emiSteps = int(fracEMI * numRounds)
         emiStep = numRounds - emiSteps
         print("Training with MI-RNN loss for %d rounds" % emiStep,
@@ -920,9 +924,6 @@ class EMI_Driver:
         min_delta = 1e-4
         modelStats = []
         # stop = False
-        # Run lower EMI
-        print("\t\tTraining lower EMI for  %d rounds, %d iterations, %d epochs" % (numRounds, numIter, numEpochs),
-              file=redirFile)
         for cround in range(numRounds):
             # Refresh lossHistory and patienceCount at the beginning of each round
             lossHistory = []
