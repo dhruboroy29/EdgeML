@@ -251,11 +251,23 @@ class EMI_Trainer_2Tier:
         msg1 = 'Multiple tensors with the same name in the graph. Are you not'
         msg1 += ' resetting your graph?'
         assert len(self.trainOp) != 0, msg0
+        assert len(self.trainOp_upper) != 0, msg0
+        #assert len(self.trainOp_joint) != 0, msg0
         assert len(self.lossOp) != 0, msg0
+        assert len(self.lossOp_upper) != 0, msg0
+        #assert len(self.lossOp_joint) != 0, msg0
         assert len(self.trainOp) == 1, msg1
+        assert len(self.trainOp_upper) == 1, msg1
+        #assert len(self.trainOp_joint) == 1, msg1
         assert len(self.lossOp) == 1, msg1
+        assert len(self.lossOp_upper) == 1, msg1
+        #assert len(self.lossOp_joint) == 1, msg1
         self.trainOp = self.trainOp[0]
+        self.trainOp_upper = self.trainOp_upper[0]
+        #self.trainOp_joint = self.trainOp_joint[0]
         self.lossOp = self.lossOp[0]
+        self.lossOp_upper = self.lossOp_upper[0]
+        #self.lossOp_joint = self.lossOp_joint[0]
         self.lossIndicatorTensor = graph.get_tensor_by_name(scope +
                                                             'loss-indicator:0')
         name = 'loss-indicator-placeholder:0'
