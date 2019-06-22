@@ -188,18 +188,18 @@ class EMI_Trainer_2Tier:
             trainOp = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/EMI-FastGRNN-Cell/FastGRNNcell/') + tf.get_collection(
-                tf.GraphKeys.TRAINABLE_VARIABLES, scope='W1') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
-                                                                                  scope='B1'))
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope='W_l') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                                                                  scope='B_l'))
 
             # Then, freeze lower EMI
             trainOp_upper = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_upper, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/FastGRNN/FastGRNNcell/') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
-                                                                                       scope='W2') + tf.get_collection(
-                tf.GraphKeys.TRAINABLE_VARIABLES, scope='B2'))
+                                                                                       scope='W_u') + tf.get_collection(
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope='B_u'))
 
-            # Finally (if training jointly), train all variables
-            trainOp_joint = tf.train.AdamOptimizer(self.stepSize).minimize(self.lossOp_joint)
+            # Finally (if training jointly), train all variables (with a reduced step size)
+            trainOp_joint = tf.train.AdamOptimizer(self.stepSize/10).minimize(self.lossOp_joint)
         return trainOp, trainOp_upper, trainOp_joint
 
     def _createGraph(self, predicted, predicted_upper, target, target_upper):
@@ -1042,7 +1042,7 @@ class EMI_Driver:
 
             acc = np.mean(np.reshape(np.array(acc), -1))
             loss = np.mean(np.reshape(np.array(loss), -1))
-            print(" Val loss %2.5f | " % loss, end='', file=redirFile)
+            print(" Val acc %2.5f | " % acc, end='', file=redirFile)
             self.__graphManager.checkpointModel(self.__saver, sess,
                                                 modelPrefix,
                                                 self.__globalStep,
@@ -1067,6 +1067,7 @@ class EMI_Driver:
         ## Append the best top-tier val-acc model
         argAcc = np.argmax(valAccList)
         resPrefix, resStep = globalStepList[argAcc]
+        cround = 666         # So as not to confuse with below EMI rounds
         modelStats.append((cround, np.max(valAccList),
                            resPrefix, resStep))
 

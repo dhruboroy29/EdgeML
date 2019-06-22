@@ -137,8 +137,8 @@ upperFastGRNN = FastGRNNCell(NUM_HIDDEN_SECONDTIER, wRank=WRANK, uRank=URANK,
 # Define the two classifiers at two levels
 def createExtendedGraph(self, baseOutput, *args, **kwargs):
     # Get EMI output - Target vs noise, so NUM_OUTPUT hardcoded as 2
-    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, 2]).astype('float32'), name='W1')
-    B1 = tf.Variable(np.random.normal(size=[2]).astype('float32'), name='B1')
+    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, 2]).astype('float32'), name='W_l')
+    B1 = tf.Variable(np.random.normal(size=[2]).astype('float32'), name='B_l')
     y_cap = tf.add(tf.tensordot(baseOutput, W1, axes=1), B1, name='y_cap_tata')
 
     # Get EMI embeddings
@@ -149,9 +149,9 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
     outputs, states = tf.nn.static_rnn(upperFastGRNN, x, dtype=tf.float32)
     secondtier=outputs[-1]
 
-    # Get second-tier output - here, #outputs is 3, only noise loss doesn't propagate up
-    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W2')
-    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B2')
+    # Get second-tier output - here, #outputs is 3, only noise loss doesn't affect upper RNN
+    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W_u')
+    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B_u')
     y_cap_upper = tf.add(tf.tensordot(secondtier, W2, axes=1), B2, name='y_cap_upper')
     self.output = [y_cap, y_cap_upper]
     self.graphCreated = True
@@ -345,6 +345,7 @@ upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
 # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
 testPredictions = np.multiply(bagPredictions, upperPredictions)
 
+print('N.B.: Round 666 implies best model is obtained from upper-tier training')
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((testPredictions == BAG_TEST).astype(int))), end='')
 
