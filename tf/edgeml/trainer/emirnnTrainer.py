@@ -192,7 +192,7 @@ class EMI_Trainer_2Tier:
                                                                                   scope='B_l'))
 
             # Then, freeze lower EMI
-            trainOp_upper = tf.train.AdamOptimizer(self.stepSize*10).minimize(self.lossOp_upper, var_list=tf.get_collection(
+            trainOp_upper = tf.train.AdamOptimizer(self.stepSize*5).minimize(self.lossOp_upper, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/FastGRNN/FastGRNNcell/') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                        scope='W_u') + tf.get_collection(
@@ -1020,8 +1020,7 @@ class EMI_Driver:
             currY = newY
 
         # Run upper RNN for iter*epochs, freezing lower EMI
-        print("\t\tTraining upper RNN for  %d epochs" % (numIter * numEpochs),
-              file=redirFile)
+        print("\t\tTraining upper RNN till convergence", file=redirFile)
         feedDict = self.feedDictFunc(inference=False, **kwargs)
         lossHistory, valAccList, globalStepList = [], [], []
         patienceCount = 0
@@ -1053,16 +1052,16 @@ class EMI_Driver:
             globalStepList.append((modelPrefix, self.__globalStep))
             self.__globalStep += 1
 
-            if use_convergence:
-                if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
-                    patienceCount = 0
-                else:
-                    patienceCount += 1
+            #if use_convergence:
+            if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
+                patienceCount = 0
+            else:
+                patienceCount += 1
 
-                if patienceCount > patience:
-                    print("Early stopping...: iter: ", citer)
-                    # stop = True
-                    break
+            if patienceCount > patience:
+                print("Early stopping...: iter: ", citer)
+                # stop = True
+                break
 
         ## Append the best top-tier val-acc model
         argAcc = np.argmax(valAccList)
