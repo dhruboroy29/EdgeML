@@ -884,7 +884,7 @@ class EMI_Driver:
                 break
         return outList
 
-    def run2tier(self, numClasses, x_train, y_train, bag_train, x_val, y_val,
+    def run2tier(self, lowernumClasses, x_train, y_train, bag_train, x_val, y_val,
                  bag_val, numIter, numRounds, batchSize, numEpochs, echoCB=None,
                  redirFile=None, modelPrefix='/tmp/model', updatePolicy='top-k',
                  fracEMI=0.3, use_convergence=False, lossIndicator=None, *args, **kwargs):
@@ -1016,7 +1016,7 @@ class EMI_Driver:
             smxOut = [np.array(smxOut[i][0]) for i in range(len(smxOut))]
             smxOut = np.concatenate(smxOut)[:, :, -1, :]
             newY = updatePolicyFunc(curr_y, smxOut, bag_train,
-                                    numClasses, **kwargs)
+                                    lowernumClasses, **kwargs)
             currY = newY
 
         # Run upper RNN for iter*epochs, freezing lower EMI

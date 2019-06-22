@@ -216,14 +216,13 @@ with g1.as_default():
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
 
 emiDriver.initializeSession(g1, config=config)
-print('NOTE: TRAINING TIME ACCURACIES SHOWN ARE EMI ONLY')
-y_updated, modelStats = emiDriver.run2tier(numClasses=2, x_train=x_train,
-                                      y_train=y_train, bag_train=BAG_TRAIN,
-                                      x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
-                                      numIter=NUM_ITER, keep_prob=KEEP_PROB,
-                                      numRounds=NUM_ROUNDS, batchSize=BATCH_SIZE,
-                                      numEpochs=NUM_EPOCHS, modelPrefix=MODEL_PREFIX,
-                                      fracEMI=0.5, updatePolicy='top-k', k=k)
+y_updated, modelStats = emiDriver.run2tier(lowernumClasses=2, x_train=x_train,
+                                           y_train=y_train, bag_train=BAG_TRAIN,
+                                           x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
+                                           numIter=NUM_ITER, keep_prob=KEEP_PROB,
+                                           numRounds=NUM_ROUNDS, batchSize=BATCH_SIZE,
+                                           numEpochs=NUM_EPOCHS, modelPrefix=MODEL_PREFIX,
+                                           fracEMI=0.5, updatePolicy='top-k', k=k)
 
 '''
 Evaluating the  trained model
