@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from __future__ import print_function
+from itertools import count
 import tensorflow as tf
 import numpy as np
 import sys
@@ -1025,7 +1026,7 @@ class EMI_Driver:
         lossHistory, valAccList, globalStepList = [], [], []
         patienceCount = 0
 
-        for citer in range(numIter):
+        for citer in count(0):
             self._dataPipe.runInitializer(sess, x_train, curr_y,
                                           batchSize, numEpochs)
             numBatches = int(np.ceil(len(x_train) / batchSize))
