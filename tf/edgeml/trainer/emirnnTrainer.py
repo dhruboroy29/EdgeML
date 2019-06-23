@@ -1026,7 +1026,7 @@ class EMI_Driver:
         lossHistory, valAccList, globalStepList = [], [], []
         patienceCount = 0
 
-        for citer in range(numIter*numEpochs):
+        for citer in range(numIter):
             self._dataPipe.runInitializer(sess, x_train, curr_y,
                                           batchSize, numEpochs)
             numBatches = int(np.ceil(len(x_train) / batchSize))
