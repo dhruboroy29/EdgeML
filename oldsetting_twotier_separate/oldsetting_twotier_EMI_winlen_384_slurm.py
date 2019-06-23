@@ -41,7 +41,7 @@ os.chdir('../hpc_scripts')
 
 # Generate gridsearch
 print('###### hpc_scripts/gridsearch #####')
-sys.argv=init_argv+['-bat', bat_sys, '-type', prefix, '-base', base, '-ots', str(winlen), '-rnd', str(10), '-it', str(10), '-ep', str(5)]
+sys.argv=init_argv+['-bat', bat_sys, '-type', prefix, '-base', base, '-ots', str(winlen), '-rnd', str(10), '-it', str(10), '-ep', str(50)]
 import hpc_scripts.gridsearch_0_2tierEMI
 
 # Split hyperparam file
