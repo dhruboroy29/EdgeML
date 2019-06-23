@@ -1026,7 +1026,7 @@ class EMI_Driver:
         lossHistory, valAccList, globalStepList = [], [], []
         patienceCount = 0
 
-        for citer in count(0):
+        for citer in range(numIter*numEpochs):
             self._dataPipe.runInitializer(sess, x_train, curr_y,
                                           batchSize, numEpochs)
             numBatches = int(np.ceil(len(x_train) / batchSize))
@@ -1053,16 +1053,16 @@ class EMI_Driver:
             globalStepList.append((modelPrefix, self.__globalStep))
             self.__globalStep += 1
 
-            #if use_convergence:
-            if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
-                patienceCount = 0
-            else:
-                patienceCount += 1
+            if use_convergence:
+                if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
+                    patienceCount = 0
+                else:
+                    patienceCount += 1
 
-            if patienceCount > patience:
-                print("Early stopping...: iter: ", citer)
-                # stop = True
-                break
+                if patienceCount > patience:
+                    print("Early stopping...: iter: ", citer)
+                    # stop = True
+                    break
 
         ## Append the best top-tier val-acc model
         argAcc = np.argmax(valAccList)
