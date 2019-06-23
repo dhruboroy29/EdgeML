@@ -1022,6 +1022,7 @@ class EMI_Driver:
 
         # Run upper RNN for iter*epochs, freezing lower EMI
         print("\t\tTraining upper RNN till convergence", file=redirFile)
+        print("Round: 666", file=redirFile)
         feedDict = self.feedDictFunc(inference=False, **kwargs)
         lossHistory, valAccList, globalStepList = [], [], []
         patienceCount = 0
@@ -1042,7 +1043,7 @@ class EMI_Driver:
 
             acc = np.mean(np.reshape(np.array(acc), -1))
             loss = np.mean(np.reshape(np.array(loss), -1))
-            print(" Val acc %2.5f | " % acc, end='', file=redirFile)
+            print(" | Val loss %2.5f Val acc %2.5f | " % (loss, acc), end='', file=redirFile)
             self.__graphManager.checkpointModel(self.__saver, sess,
                                                 modelPrefix,
                                                 self.__globalStep,
