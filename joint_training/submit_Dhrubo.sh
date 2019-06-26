@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 list_files=(
-            3_SUBMIT_twotierEMI_3class_winlen_256_jobs.sh
-            3_SUBMIT_twotierEMI_3class_winlen_384_jobs.sh
+            3_SUBMIT_jointEMI_3class_winlen_256_jobs.sh
+            3_SUBMIT_jointEMI_3class_winlen_384_jobs.sh
             )
 
 cd ../slurm_hpc
