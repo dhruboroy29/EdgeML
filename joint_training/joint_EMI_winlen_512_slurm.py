@@ -5,12 +5,12 @@ sys.path.append('../')
 
 ######################### ONLY MODIFY THESE VALUES #########################
 # Number of splits of hyperparam file
-winlen = 384
+winlen = 512
 
 num_splits='24'
 
 # Base path of data
-prefix = 'twotierEMI_3class_winlen_' + str(winlen)
+prefix = 'jointEMI_3class_winlen_' + str(winlen)
 
 base='/scratch/dr2915/Bumblebee/bb_3class_winlen_' + str(winlen) + '_winindex_all/3class_48_16'
 
@@ -42,7 +42,7 @@ os.chdir('../hpc_scripts')
 # Generate gridsearch
 print('###### hpc_scripts/gridsearch #####')
 sys.argv=init_argv+['-bat', bat_sys, '-type', prefix, '-base', base, '-ots', str(winlen)]
-import hpc_scripts.gridsearch_0_2tierEMI
+import hpc_scripts.gridsearch_0_jointEMI
 
 # Split hyperparam file
 print('###### hpc_scripts/split_hyp_wrapper #####')

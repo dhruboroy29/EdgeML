@@ -4,7 +4,6 @@ source activate tfgpu
 
 list_files=(
             twotierEMI_3class_winlen_512
-            twotierEMI_3class_winlen_640
             twotierEMI_3class_winlen_768
             )
 
