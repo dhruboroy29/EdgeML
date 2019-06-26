@@ -292,7 +292,7 @@ with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + "_H2="
         predictions, predictionStep = emiDriver.getInstancePredictions(x_val, y_val, earlyPolicy_minProb,
                                                                        minProb=0.99, keep_prob=1.0)
         # Get bag-level predictions
-        bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+        bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=2)
         # Get upper tier predictions
         upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
         # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
@@ -313,7 +313,7 @@ with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + "_H2="
         predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                        minProb=0.99, keep_prob=1.0)
         # Get bag-level predictions
-        bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+        bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=2)
         # Get upper tier predictions
         upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
         # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
@@ -339,7 +339,7 @@ emiDriver.loadSavedGraphToNewSession(modelPrefix, int(globalStep), redirFile=dev
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                            minProb=0.99, keep_prob=1.0)
 # Get bag-level predictions
-bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=2)
 # Get upper tier predictions
 upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
 # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero

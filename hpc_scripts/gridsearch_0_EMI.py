@@ -15,7 +15,7 @@ parser.add_argument('-ots', type=int, help='Original number of time steps')
 parser.add_argument('-rnd', type=int, default=5, help='Number of rounds')
 parser.add_argument('-ep', type=int, default=50, help='Number of epochs')
 parser.add_argument('-it', type=int, default=10, help='Number of iterations')
-parser.add_argument('-k', type=int, default=100, help='Min. number of consecutive target instances. 100 for max possible')
+parser.add_argument('-k', type=int, default=10, help='Min. number of consecutive target instances. 100 for max possible')
 parser.add_argument('-q15', type=ast.literal_eval, default=False, help='Is this a Q15 gridsearch?')
 
 
@@ -46,7 +46,7 @@ def generate_trainstring(v):
     res_str = "python3 ../tf/examples/EMI-RNN/step2_emi_fastrgnn_disp_det.py -O " + str(args.O)\
               + " -gN " + str(v[0]) + " -uN " + str(v[1]) + " -bs " + str(v[2]) + " -H " + str(
         v[3]) + " -Dat " + args.base\
-              + " -rnd " + str(args.rnd) + " -it " + str(args.it) + " -ep " + str(args.ep) + " -ots " + str(args.ots) + " -k 100 -out $outname"
+              + " -rnd " + str(args.rnd) + " -it " + str(args.it) + " -ep " + str(args.ep) + " -ots " + str(args.ots) + " -k " + str(args.k) + " -out $outname"
 
     return res_str
 

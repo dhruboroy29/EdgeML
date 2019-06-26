@@ -213,7 +213,7 @@ emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 predictions, predictionStep = emiDriver.getInstancePredictions(x_all, y_all, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
 
-bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=NUM_OUTPUT)
+bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', All-point Accuracy (k = %d): %f, ' % (k,  np.mean((bagPredictions == BAG_ALL).astype(int))), end='')
 

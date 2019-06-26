@@ -132,13 +132,37 @@ if k==100:
 upperFastGRNN = FastGRNNCell(NUM_HIDDEN_SECONDTIER, wRank=WRANK, uRank=URANK,
                            gate_non_linearity=GATE_NL, update_non_linearity=UPDATE_NL)
 
+# Early Prediction Policy: We make an early prediction based on the predicted classes
+#     probability. If the predicted class probability > minProb at some step, we make
+#     a prediction at that step.
+def earlyPolicy_minProb(instanceOut, minProb, **kwargs):
+    assert instanceOut.ndim == 2
+    classes = np.argmax(instanceOut, axis=1)
+    prob = np.max(instanceOut, axis=1)
+    index = np.where(prob >= minProb)[0]
+    if len(index) == 0:
+        assert (len(instanceOut) - 1) == (len(classes) - 1)
+        return classes[-1], len(instanceOut) - 1
+    index = index[0]
+    return classes[index], index
+
+def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
+    predictionStep = predictionStep + 1
+    predictionStep = np.reshape(predictionStep, -1)
+    totalSteps = np.sum(predictionStep)
+    maxSteps = len(predictionStep) * numTimeSteps
+    savings = 1.0 - (totalSteps / maxSteps)
+    if returnTotal:
+        return savings, totalSteps
+    return savings
+
 
 # Define the upper layer - This incorporates upper FastGRNN
 # Define the two classifiers at two levels
 def createExtendedGraph(self, baseOutput, *args, **kwargs):
     # Get EMI output - Target vs noise, so NUM_OUTPUT hardcoded as 2
-    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, 2]).astype('float32'), name='W1')
-    B1 = tf.Variable(np.random.normal(size=[2]).astype('float32'), name='B1')
+    W1 = tf.Variable(np.random.normal(size=[NUM_HIDDEN, 2]).astype('float32'), name='W_l')
+    B1 = tf.Variable(np.random.normal(size=[2]).astype('float32'), name='B_l')
     y_cap = tf.add(tf.tensordot(baseOutput, W1, axes=1), B1, name='y_cap_tata')
 
     # Get EMI embeddings
@@ -149,9 +173,9 @@ def createExtendedGraph(self, baseOutput, *args, **kwargs):
     outputs, states = tf.nn.static_rnn(upperFastGRNN, x, dtype=tf.float32)
     secondtier=outputs[-1]
 
-    # Get second-tier output - here, #outputs is 3, only noise loss doesn't propagate up
-    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W2')
-    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B2')
+    # Get second-tier output - here, #outputs is 3, only noise loss doesn't affect upper RNN
+    W2 = tf.Variable(np.random.normal(size=[NUM_HIDDEN_SECONDTIER, NUM_OUTPUT]).astype('float32'), name='W_u')
+    B2 = tf.Variable(np.random.normal(size=[NUM_OUTPUT]).astype('float32'), name='B_u')
     y_cap_upper = tf.add(tf.tensordot(secondtier, W2, axes=1), B2, name='y_cap_upper')
     self.output = [y_cap, y_cap_upper]
     self.graphCreated = True
@@ -181,7 +205,7 @@ if USE_DROPOUT is True:
 inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
 emiFastGRNN = EMI_FastGRNN(NUM_SUBINSTANCE, NUM_HIDDEN, NUM_TIMESTEPS, NUM_FEATS, wRank=WRANK, uRank=URANK,
                            gate_non_linearity=GATE_NL, update_non_linearity=UPDATE_NL, useDropout=USE_DROPOUT)
-emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, numOutputUpper=NUM_OUTPUT, lossType='xentropy')
+emiTrainer2tier = EMI_Trainer_2Tier(NUM_TIMESTEPS, numOutputUpper=NUM_OUTPUT, lossType='xentropy', joint=True)
 
 
 # Connect elementary parts together to create forward graph
@@ -216,43 +240,18 @@ with g1.as_default():
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
 
 emiDriver.initializeSession(g1, config=config)
-print('NOTE: TRAINING TIME ACCURACIES SHOWN ARE EMI ONLY')
-y_updated, modelStats = emiDriver.run(numClasses=2, x_train=x_train,
-                                      y_train=y_train, bag_train=BAG_TRAIN,
-                                      x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
-                                      numIter=NUM_ITER, keep_prob=KEEP_PROB,
-                                      numRounds=NUM_ROUNDS, batchSize=BATCH_SIZE,
-                                      numEpochs=NUM_EPOCHS, modelPrefix=MODEL_PREFIX,
-                                      fracEMI=0.5, updatePolicy='top-k', k=k)
+y_updated, modelStats = emiDriver.run2tier(lowernumClasses=2, x_train=x_train,
+                                           y_train=y_train, bag_train=BAG_TRAIN,
+                                           x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
+                                           numIter=NUM_ITER, keep_prob=KEEP_PROB,
+                                           numRounds=NUM_ROUNDS, batchSize=BATCH_SIZE,
+                                           numEpochs=NUM_EPOCHS, modelPrefix=MODEL_PREFIX,
+                                           fracEMI=0.5, updatePolicy='top-k', predictPolicy=earlyPolicy_minProb,
+                                           k=k)
 
 '''
 Evaluating the  trained model
 '''
-
-# Early Prediction Policy: We make an early prediction based on the predicted classes
-#     probability. If the predicted class probability > minProb at some step, we make
-#     a prediction at that step.
-def earlyPolicy_minProb(instanceOut, minProb, **kwargs):
-    assert instanceOut.ndim == 2
-    classes = np.argmax(instanceOut, axis=1)
-    prob = np.max(instanceOut, axis=1)
-    index = np.where(prob >= minProb)[0]
-    if len(index) == 0:
-        assert (len(instanceOut) - 1) == (len(classes) - 1)
-        return classes[-1], len(instanceOut) - 1
-    index = index[0]
-    return classes[index], index
-
-def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
-    predictionStep = predictionStep + 1
-    predictionStep = np.reshape(predictionStep, -1)
-    totalSteps = np.sum(predictionStep)
-    maxSteps = len(predictionStep) * numTimeSteps
-    savings = 1.0 - (totalSteps / maxSteps)
-    if returnTotal:
-        return savings, totalSteps
-    return savings
-
 #k = 2
 #predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
 #                                                               minProb=0.99, keep_prob=1.0)
@@ -292,7 +291,7 @@ for val in modelStats:
     predictions, predictionStep = emiDriver.getInstancePredictions(x_val, y_val, earlyPolicy_minProb,
                                                                    minProb=0.99, keep_prob=1.0)
     # Get bag-level predictions
-    bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+    bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=2)
     # Get upper tier predictions
     upperPredictions = emiDriver.getUpperTierPredictions(x_val, y_val)
     # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
@@ -340,12 +339,13 @@ emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                            minProb=0.99, keep_prob=1.0)
 # Get bag-level predictions
-bagPredictions = emiDriver.getBagPredictions(predictions, minSubsequenceLen=k, numClass=2)
+bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=2)
 # Get upper tier predictions
 upperPredictions = emiDriver.getUpperTierPredictions(x_test, y_test)
 # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
 testPredictions = np.multiply(bagPredictions, upperPredictions)
 
+print('N.B.: Round 666 implies best model is obtained from upper-tier training')
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k,  np.mean((testPredictions == BAG_TEST).astype(int))), end='')
 

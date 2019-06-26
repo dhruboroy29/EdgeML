@@ -104,7 +104,7 @@ def crossEntropyLossWithIndicator(logits, label, indicator):
     '''
     return tf.reduce_mean(
         tf.multiply(indicator, tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,
-                                                   labels=tf.stop_gradient(label))))
+                                                   labels=label)))
 
 
 def crossEntropyLoss(logits, label):

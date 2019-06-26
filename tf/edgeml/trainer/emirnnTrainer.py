@@ -13,7 +13,7 @@ import pandas as pd
 class EMI_Trainer_2Tier:
     def __init__(self, numTimeSteps, numOutputUpper=3, graph=None,
                  stepSize=0.001, lossType='l2', optimizer='Adam',
-                 automode=True):
+                 automode=True, joint=False):
         '''
         CHANGE: numOutput is hardcoded to 2
         The EMI-RNN trainer. This classes attaches loss functions and training
@@ -67,6 +67,7 @@ class EMI_Trainer_2Tier:
         self.trainOp = None
         self.trainOp_upper = None
         self.trainOp_joint = None
+        self.joint = joint
         self.softmaxPredictions = None
         self.uppersoftmaxPredictions = None
         self.accTilda = None
@@ -110,10 +111,10 @@ class EMI_Trainer_2Tier:
             # A simple check to self.__validInit should suffice. Test this.
             assert self.lossOp is not None
             assert self.lossOp_upper is not None
-            # assert self.lossOp_joint is not None
+            if self.joint: assert self.lossOp_joint is not None
             assert self.trainOp is not None
             assert self.trainOp_upper is not None
-            # assert self.trainOp_joint is not None
+            if self.joint: assert self.trainOp_joint is not None
             return self.lossOp, self.lossOp_upper, self.lossOp_joint, self.trainOp, self.trainOp_upper, self.trainOp_joint
 
         self.__validateInit(predicted, target)
@@ -193,7 +194,7 @@ class EMI_Trainer_2Tier:
                                                                                   scope='B_l'))
 
             # Then, freeze lower EMI
-            trainOp_upper = tf.train.AdamOptimizer(self.stepSize*5).minimize(self.lossOp_upper, var_list=tf.get_collection(
+            trainOp_upper = tf.train.AdamOptimizer(self.stepSize*10).minimize(self.lossOp_upper, var_list=tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope='rnn/fast_grnn_cell/FastGRNN/FastGRNNcell/') + tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
                                                                                        scope='W_u') + tf.get_collection(
@@ -253,22 +254,22 @@ class EMI_Trainer_2Tier:
         msg1 += ' resetting your graph?'
         assert len(self.trainOp) != 0, msg0
         assert len(self.trainOp_upper) != 0, msg0
-        #assert len(self.trainOp_joint) != 0, msg0
+        if self.joint: assert len(self.trainOp_joint) != 0, msg0
         assert len(self.lossOp) != 0, msg0
         assert len(self.lossOp_upper) != 0, msg0
-        #assert len(self.lossOp_joint) != 0, msg0
+        if self.joint: assert len(self.lossOp_joint) != 0, msg0
         assert len(self.trainOp) == 1, msg1
         assert len(self.trainOp_upper) == 1, msg1
-        #assert len(self.trainOp_joint) == 1, msg1
+        if self.joint: assert len(self.trainOp_joint) == 1, msg1
         assert len(self.lossOp) == 1, msg1
         assert len(self.lossOp_upper) == 1, msg1
-        #assert len(self.lossOp_joint) == 1, msg1
+        if self.joint: assert len(self.lossOp_joint) == 1, msg1
         self.trainOp = self.trainOp[0]
         self.trainOp_upper = self.trainOp_upper[0]
-        #self.trainOp_joint = self.trainOp_joint[0]
+        if self.joint: self.trainOp_joint = self.trainOp_joint[0]
         self.lossOp = self.lossOp[0]
         self.lossOp_upper = self.lossOp_upper[0]
-        #self.lossOp_joint = self.lossOp_joint[0]
+        if self.joint: self.lossOp_joint = self.lossOp_joint[0]
         self.lossIndicatorTensor = graph.get_tensor_by_name(scope +
                                                             'loss-indicator:0')
         name = 'loss-indicator-placeholder:0'
@@ -887,7 +888,7 @@ class EMI_Driver:
 
     def run2tier(self, lowernumClasses, x_train, y_train, bag_train, x_val, y_val,
                  bag_val, numIter, numRounds, batchSize, numEpochs, echoCB=None,
-                 redirFile=None, modelPrefix='/tmp/model', updatePolicy='top-k',
+                 redirFile=None, modelPrefix='/tmp/model', updatePolicy='top-k', predictPolicy = None,
                  fracEMI=0.3, use_convergence=False, lossIndicator=None, *args, **kwargs):
         '''
         Performs the EMI-RNN training routine.
@@ -934,6 +935,10 @@ class EMI_Driver:
         curr_y = np.array(y_train)
         assert fracEMI >= 0
         assert fracEMI <= 1
+
+        if self._emiTrainer.joint:
+            # Set use_convergence to true
+            use_convergence = True
 
         # Run lower EMI, freezing upper RNN
         print("\t\tTraining lower EMI for  %d rounds, %d iterations, %d epochs" % (numRounds, numIter, numEpochs),
@@ -1017,7 +1022,7 @@ class EMI_Driver:
             smxOut = [np.array(smxOut[i][0]) for i in range(len(smxOut))]
             smxOut = np.concatenate(smxOut)[:, :, -1, :]
             newY = updatePolicyFunc(curr_y, smxOut, bag_train,
-                                    lowernumClasses, **kwargs)
+                                    numClasses=lowernumClasses, **kwargs)
             currY = newY
 
         # Run upper RNN for iter*epochs, freezing lower EMI
@@ -1050,7 +1055,6 @@ class EMI_Driver:
                                                 redirFile=redirFile)
             valAccList.append(acc)
             lossHistory.append(loss)
-            print(lossHistory)
             globalStepList.append((modelPrefix, self.__globalStep))
             self.__globalStep += 1
 
@@ -1065,12 +1069,104 @@ class EMI_Driver:
                     # stop = True
                     break
 
+        # Print loss history
+        print(lossHistory)
         ## Append the best top-tier val-acc model
         argAcc = np.argmax(valAccList)
         resPrefix, resStep = globalStepList[argAcc]
         cround = 666         # So as not to confuse with below EMI rounds
         modelStats.append((cround, np.max(valAccList),
                            resPrefix, resStep))
+
+
+        # Finally, joint training
+        if self._emiTrainer.joint:
+            print("\t\tJoint-training EMI+RNN", file=redirFile)
+            lossIndicator = None
+            for cround in range(numRounds):
+                # Refresh lossHistory and patienceCount at the beginning of each round
+                lossHistory = []
+                patienceCount = 0
+                feedDict = self.feedDictFunc(inference=False, **kwargs)
+                print("Round: %d" % cround, file=redirFile)
+                if cround == emiStep:
+                    print("Switching to EMI-Loss function", file=redirFile)
+                    if lossIndicator is not None:
+                        raise NotImplementedError('TODO')
+                    else:
+                        nTs = self._emiTrainer.numTimeSteps
+                        nOut = self._emiTrainer.numOutput
+                        lossIndicator = np.ones([nTs, nOut])
+                        sess.run(self._emiTrainer.lossIndicatorAssignOp,
+                                 feed_dict={self._emiTrainer.lossIndicatorPlaceholder:
+                                                lossIndicator})
+                valAccList, globalStepList = [], []
+                # Train the best model for the current round
+                for citer in range(numIter):
+                    self._dataPipe.runInitializer(sess, x_train, curr_y,
+                                                  batchSize, numEpochs)
+                    numBatches = int(np.ceil(len(x_train) / batchSize))
+                    self._emiTrainer.trainModel_joint(sess, echoCB=None,
+                                                numBatches=numBatches,
+                                                feedDict=feedDict,
+                                                redirFile=redirFile)
+                    #acc = self.runOps([self._emiTrainer.accUpper],
+                    #                  x_val, y_val, batchSize, inference=True)
+
+                    loss = self.runOps([self._emiTrainer.lossOp_joint],
+                                       x_val, y_val, batchSize, inference=True)
+
+                    predictions, predictionStep = self.getInstancePredictions(x_val, y_val, predictPolicy,
+                                                                              minProb=0.99, keep_prob=1.0)
+                    # Get bag-level predictions
+                    bagPredictions = self.getBagPredictions(predictions, numClass=lowernumClasses, **kwargs)
+                    # Get upper tier predictions
+                    upperPredictions = self.getUpperTierPredictions(x_val, y_val)
+                    # Get validation predictions following switch emulation: consider top level prediction only when bottom level output nonzero
+                    valPredictions = np.multiply(bagPredictions, upperPredictions)
+                    # Finally, compute validation accuracy
+                    acc = np.mean((valPredictions == np.argmax(y_val[:, 0, :], axis=1)).astype(int))
+
+                    #acc = np.mean(np.reshape(np.array(acc), -1))
+                    loss = np.mean(np.reshape(np.array(loss), -1))
+                    print(" Val acc %2.5f | " % acc, end='', file=redirFile)
+                    self.__graphManager.checkpointModel(self.__saver, sess,
+                                                        modelPrefix,
+                                                        self.__globalStep,
+                                                        redirFile=redirFile)
+                    valAccList.append(acc)
+                    lossHistory.append(loss)
+                    print(lossHistory)
+                    globalStepList.append((modelPrefix, self.__globalStep))
+                    self.__globalStep += 1
+
+                    if use_convergence:
+                        if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
+                            patienceCount = 0
+                        else:
+                            patienceCount += 1
+
+                        if patienceCount > patience:
+                            print("Early stopping...: iter: ", citer)
+                            # stop = True
+                            break
+
+                # Update y for the current round
+                ## Load the best val-acc model
+                argAcc = np.argmax(valAccList)
+                resPrefix, resStep = globalStepList[argAcc]
+                modelStats.append((cround, np.max(valAccList),
+                                   resPrefix, resStep))
+                self.loadSavedGraphToNewSession(resPrefix, resStep, redirFile)
+                sess = self.getCurrentSession()
+                feedDict = self.feedDictFunc(inference=True, **kwargs)
+                smxOut = self.runOps([self._emiTrainer.softmaxPredictions],
+                                     x_train, y_train, batchSize, feedDict)
+                smxOut = [np.array(smxOut[i][0]) for i in range(len(smxOut))]
+                smxOut = np.concatenate(smxOut)[:, :, -1, :]
+                newY = updatePolicyFunc(curr_y, smxOut, bag_train,
+                                        lowernumClasses, **kwargs)
+                currY = newY
 
         return currY, modelStats
 
@@ -1294,7 +1390,7 @@ class EMI_Driver:
 
         for i in range(1, numSubinstance + 1):
             pred_ = self.getBagPredictions(predictions, numClass=numClass,
-                                           minSubsequenceLen=i,
+                                           k=i,
                                            redirFile=redirFile)
             correct = (pred_ == Y_bag).astype('int')
             trueAcc = np.mean(correct)
@@ -1481,8 +1577,8 @@ class EMI_Driver:
         smxOut = np.vstack(self.runOps(opList, x, y, batchSize, feedDict=feedDict, **kwargs))
         return np.argmax(smxOut, axis=1)
 
-    def getBagPredictions(self, Y_predicted, minSubsequenceLen=4,
-                          numClass=2, redirFile=None):
+    def getBagPredictions(self, Y_predicted, k=4,
+                          numClass=2, keep_prob=0.99, redirFile=None):
         '''
         Returns bag level predictions given instance level predictions.
 
@@ -1511,7 +1607,7 @@ class EMI_Driver:
         length = np.max(scoreList, axis=1)
         assert (length.ndim == 1)
         assert (length.shape[0] == Y_predicted.shape[0])
-        predictionIndex = (length >= minSubsequenceLen)
+        predictionIndex = (length >= k)
         prediction = np.zeros((Y_predicted.shape[0]))
         labels = np.argmax(scoreList, axis=1) + 1
         prediction[predictionIndex] = labels[predictionIndex]
