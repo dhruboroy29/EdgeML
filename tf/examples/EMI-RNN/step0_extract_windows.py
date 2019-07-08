@@ -126,7 +126,7 @@ if __name__=='__main__':
         outdir='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/'
                'Deep_Learning_Radar/Displacement_Detection/Data/BumbleBee/',
         class_label='Target',
-        stride=128,
+        stride=384,
         winlen=384)
 
     print('----------------Non-human BumbleBee Targets----------------')
