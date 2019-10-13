@@ -31,9 +31,9 @@ parser = argparse.ArgumentParser(description='HyperParameters for EMI-FastGRNN')
 parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances. 100 for max possible')
 parser.add_argument('-H', type=int, default=16, help='Number of hidden units')
 parser.add_argument('-H2', type=int, default=-1, help='Number of second-tier hidden units (defaults to -H)')
-parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
+#parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
-parser.add_argument('-F', type=int, default=2, help='Number of features')
+#parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
 parser.add_argument('-O', type=int, default=3, help='Number of outputs - all (#target types+noise)')
 parser.add_argument('-d', type=bool, default=False, help='Dropout?')
@@ -58,9 +58,9 @@ if args.H2 == -1:
     NUM_HIDDEN_SECONDTIER = NUM_HIDDEN
 else:
     NUM_HIDDEN_SECONDTIER = args.H2 #16
-NUM_TIMESTEPS = args.ts #48
+#NUM_TIMESTEPS = args.ts #48
 ORIGINAL_NUM_TIMESTEPS = args.ots #256
-NUM_FEATS = args.F #2
+#NUM_FEATS = args.F #2
 FORGET_BIAS = args.fb #1.0
 NUM_OUTPUT = args.O #2
 USE_DROPOUT = args.d #False
