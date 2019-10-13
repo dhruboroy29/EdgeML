@@ -13,7 +13,7 @@ hiddensizefilter =  sys.argv[2]
 df = pd.read_table(filename, header=None,
                    names=['gN', 'uN', 'uR', 'wR', 'rnd', 'ep', 'it', 'bs', 'H', 'H2', 'k', 'total_savings', 'modelsize', 'Val_Acc', 'Acc', 'Recall0', 'Recall1', 'Recall2'])
 
-# Only taking rows with valid accuracy
+# Only taking rows wh valid accuracy
 df['Acc'].replace('', np.nan, inplace=True)
 df.dropna(subset=['Acc'], inplace=True)
 

@@ -269,14 +269,14 @@ Evaluating the  trained model
 #df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
 
 # Write model stats file
-with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + "_H2=" + str(NUM_HIDDEN_SECONDTIER)
-                                + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
-                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
-                                + '_bs=' + str(BATCH_SIZE) + '.csv'),'w') as out:
-    csv_out=csv.writer(out)
-    csv_out.writerow(['name','num'])
-    for row in modelStats:
-        csv_out.writerow(row)
+#with open(os.path.join(data_dir,'modelstats_2tier_H=' + str(NUM_HIDDEN) + "_H2=" + str(NUM_HIDDEN_SECONDTIER)
+#                                + '_k=' + str(k) + '_ep='+ str(NUM_EPOCHS)
+#                                + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+#                                + '_bs=' + str(BATCH_SIZE) + '.csv'),'w') as out:
+#    csv_out=csv.writer(out)
+#    csv_out.writerow(['name','num'])
+#    for row in modelStats:
+#        csv_out.writerow(row)
 
 # Pick the best model
 devnull = open(os.devnull, 'r')
