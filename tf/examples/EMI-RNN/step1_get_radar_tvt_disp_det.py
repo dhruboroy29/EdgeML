@@ -62,7 +62,7 @@ for dir in list_dirs:
     humans_data = ReadRadarWindows(humans_path, num_features)
     humans_label = np.array([1] * len(humans_data))
     nonhumans_data = ReadRadarWindows(nonhumans_path, num_features)
-    nonhumans_label = np.array([2] * len(nonhumans_data))
+    nonhumans_label = np.array([1] * len(nonhumans_data))
     noise_data = ReadRadarWindows(noise_path, num_features)
     noise_label = np.array([0] * len(noise_data))
 
@@ -114,14 +114,14 @@ for dir in list_dirs:
     x_test = np.reshape(x_test, [-1, timesteps, feats])
 
     # one-hot encoding of labels
-    numOutput = 3
+    numOutput = 2
     y_train = one_hot(y_train, numOutput)
     y_val = one_hot(y_val, numOutput)
     y_test = one_hot(y_test, numOutput)
 
 
     # Create EMI data
-    outDir = extractedDir + '/3class_%d_%d/' % (subinstanceLen, subinstanceStride)
+    outDir = extractedDir + '/%d_%d/' % (subinstanceLen, subinstanceStride)
 
     print('subinstanceLen', subinstanceLen)
     print('subinstanceStride', subinstanceStride)
