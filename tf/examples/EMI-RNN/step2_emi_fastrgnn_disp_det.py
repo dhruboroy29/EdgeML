@@ -27,9 +27,9 @@ from edgeml.trainer.emirnnTrainer import EMI_Trainer, EMI_Driver
 parser = argparse.ArgumentParser(description='HyperParameters for EMI-FastGRNN')
 parser.add_argument('-k', type=int, default=2, help='Min. number of consecutive target instances. 100 for max possible')
 parser.add_argument('-H', type=int, default=16, help='Number of hidden units')
-parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
+#parser.add_argument('-ts', type=int, default=48, help='Number of timesteps')
 parser.add_argument('-ots', type=int, default=256, help='Original number of timesteps')
-parser.add_argument('-F', type=int, default=2, help='Number of features')
+#parser.add_argument('-F', type=int, default=2, help='Number of features')
 parser.add_argument('-fb', type=float, default=1.0, help='Forget bias')
 parser.add_argument('-O', type=int, default=2, help='Number of outputs')
 parser.add_argument('-d', type=bool, default=False, help='Dropout?')
@@ -50,9 +50,7 @@ args = parser.parse_args()
 # Network parameters for our FastGRNN + FC Layer
 k = args.k #2
 NUM_HIDDEN = args.H #16
-NUM_TIMESTEPS = args.ts #48
 ORIGINAL_NUM_TIMESTEPS = args.ots #256
-NUM_FEATS = args.F #2
 FORGET_BIAS = args.fb #1.0
 NUM_OUTPUT = args.O #2
 USE_DROPOUT = args.d #False
@@ -107,7 +105,12 @@ x_val, y_val = np.load(os.path.join(data_dir,'x_val.npy')), np.load(os.path.join
 BAG_TEST = np.argmax(y_test[:, 0, :], axis=1)
 BAG_TRAIN = np.argmax(y_train[:, 0, :], axis=1)
 BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
+
+# Inferred params
 NUM_SUBINSTANCE = x_train.shape[1]
+NUM_TIMESTEPS = x_train.shape[2]
+NUM_FEATS = x_train.shape[-1]
+
 print("x_train shape is:", x_train.shape)
 print("y_train shape is:", y_train.shape)
 print("x_test shape is:", x_val.shape)
