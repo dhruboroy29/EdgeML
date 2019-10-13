@@ -212,12 +212,13 @@ predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, e
                                                                minProb=0.99, keep_prob=1.0)
 bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
 print('Accuracy at k = %d: %f' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))))
-mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+
+#mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
 emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-total_savings = mi_savings + (1 - mi_savings) * emi_savings
-print('Savings due to MI-RNN : %f' % mi_savings)
-print('Savings due to Early prediction: %f' % emi_savings)
-print('Total Savings: %f' % (total_savings))
+#total_savings = mi_savings + (1 - mi_savings) * emi_savings
+#print('Savings due to MI-RNN : %f' % mi_savings)
+print('EMI savings due to Early prediction: %f' % emi_savings)
+#print('Total Savings: %f' % (total_savings))
 
 
 # A slightly more detailed analysis method is provided.
@@ -269,15 +270,15 @@ recalllist = [bagcmatrix[i][i] / x if x !=
 metaname = modelPrefix + '-%d.meta' % globalStep
 modelsize = utils.getModelSize(metaname)
 
-mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+#mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
 emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-total_savings = mi_savings + (1 - mi_savings) * emi_savings
-print('Additional savings: %f' % emi_savings)
-print("Total Savings: %f" % total_savings)
+#total_savings = mi_savings + (1 - mi_savings) * emi_savings
+print('EMI savings due to Early prediction: %f' % emi_savings)
+#print("Total Savings: %f" % total_savings)
 
 # Create result string
 results_list = [args.gN, args.uN, args.uR, args.wR, args.rnd, args.ep, args.it, args.bs, args.H,
-       k, total_savings, modelsize, acc, test_acc]
+       k, emi_savings, modelsize, acc, test_acc]
 for recall in recalllist:
     results_list.append(recall)
 

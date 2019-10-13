@@ -118,7 +118,12 @@ BAG_TRAIN = np.argmax(y_train[:, 0, :], axis=1)
 SUBINST_TRAIN = np.argmax(y_train, axis=2)
 BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
 SUBINST_VAL = np.argmax(y_val, axis=2)
+
+# Inferred params
 NUM_SUBINSTANCE = x_train.shape[1]
+NUM_TIMESTEPS = x_train.shape[2]
+NUM_FEATS = x_train.shape[-1]
+
 print("x_train shape is:", x_train.shape)
 print("y_train shape is:", y_train.shape)
 print("x_test shape is:", x_val.shape)
@@ -365,16 +370,16 @@ recalllist = [testcmatrix[i][i] / x if x !=
 metaname = modelPrefix + '-%d.meta' % globalStep
 modelsize = utils.getModelSize(metaname)
 
-mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
+#mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
 emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-total_savings = mi_savings + (1 - mi_savings) * emi_savings
-print('Savings due to MI-RNN : %f' % mi_savings)
-print('Additional savings due to Early prediction: %f' % emi_savings)
-print("Total Savings: %f" % total_savings)
+#total_savings = mi_savings + (1 - mi_savings) * emi_savings
+#print('Savings due to MI-RNN : %f' % mi_savings)
+print('EMI savings due to Early prediction: %f' % emi_savings)
+#print("Total Savings: %f" % total_savings)
 
 # Create result string
 results_list = [args.gN, args.uN, args.uR, args.wR, args.rnd, args.ep, args.it, args.bs, args.H, NUM_HIDDEN_SECONDTIER,
-       k, total_savings, modelsize, acc, test_acc]
+       k, emi_savings, modelsize, acc, test_acc]
 for recall in recalllist:
     results_list.append(recall)
 
