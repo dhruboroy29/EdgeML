@@ -23,7 +23,7 @@ bat_sys='pbs'
 k=[5, 6, 7]
 
 # Running time
-walltime='1-0'
+walltime='24:00:00'
 
 ######################### KEEP THE REST INTACT #########################
 # Folder where jobs are saved
