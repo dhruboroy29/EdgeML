@@ -17,13 +17,13 @@ base='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/' \
      'Windowed/winlen_' + str(winlen) + '_stride_' + str(stride) + '/12_8'
 
 # Batch system
-bat_sys='pbs'
+bat_sys='slurm'
 
 # List of values of hyperparam k
 k=[5, 6, 7]
 
 # Running time
-walltime='24:00:00'
+walltime='1-0'
 
 ######################### KEEP THE REST INTACT #########################
 # Folder where jobs are saved
