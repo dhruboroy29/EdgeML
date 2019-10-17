@@ -12,9 +12,7 @@ num_splits='12'
 # Base path of data
 prefix = 'demo_EMI_2class_winlen_' + str(winlen) + '_stride_' + str(stride)
 
-base='/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/' \
-     'Research/Deep_Learning_Radar/Data/Austere/BuildSys_Demo/' \
-     'Windowed/winlen_' + str(winlen) + '_stride_' + str(stride) + '/12_8'
+base='/scratch/dr2915/austere/buildsys_demo/winlen_' + str(winlen) + '_stride_' + str(stride) + '/12_8'
 
 # Batch system
 bat_sys='slurm'
