@@ -293,3 +293,9 @@ HAR/
 
 #ipynb checkpoints
 .ipynb_checkpoints/
+
+# Split files, split outputs, and slurm jobs
+slurm*.out
+*spl.sh
+*spl.out
+
