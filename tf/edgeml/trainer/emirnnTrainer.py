@@ -1500,7 +1500,6 @@ class EMI_Driver:
 
         # Convert values to numpy arrays
         load_data.update((k, np.array(v)) for k, v in load_data.items())
-        pass
 
     # Added by Dhrubo
     def freeze_graph(self, graph):

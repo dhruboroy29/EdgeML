@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from sklearn.model_selection import train_test_split
+import json, codecs
 from helpermethods import ReadRadarWindows, one_hot, bagData
 import argparse
 
@@ -95,6 +96,10 @@ for dir in list_dirs:
     x_train = np.reshape(x_train, [-1, feats])
     mean = np.mean(x_train, axis=0)
     std = np.std(x_train, axis=0)
+
+    # Save training mean and std
+    data = {"mean": mean.tolist(), "std": std.tolist()}
+    json.dump(data, codecs.open('../../../buildsys_model/train_stats.json', 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
 
     # normalize train
     x_train = x_train - mean
