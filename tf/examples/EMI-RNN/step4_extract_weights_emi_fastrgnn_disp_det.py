@@ -171,13 +171,6 @@ with g1.as_default():
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer)
 
 emiDriver.initializeSession(g1, config=config)
-# y_updated, modelStats = emiDriver.run(numClasses=NUM_OUTPUT, x_train=x_train,
-#                                       y_train=y_train, bag_train=BAG_TRAIN,
-#                                       x_val=x_val, y_val=y_val, bag_val=BAG_VAL,
-#                                       numIter=NUM_ITER, keep_prob=KEEP_PROB,
-#                                       numRounds=NUM_ROUNDS, batchSize=BATCH_SIZE,
-#                                       numEpochs=NUM_EPOCHS, modelPrefix=MODEL_PREFIX,
-#                                       fracEMI=0.5, updatePolicy='top-k', k=k)
 
 '''
 Evaluating the  trained model
@@ -207,29 +200,12 @@ def getEarlySaving(predictionStep, numTimeSteps, returnTotal=False):
         return savings, totalSteps
     return savings
 
-#k = 2
-# predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
-#                                                                minProb=0.99, keep_prob=1.0)
-# bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
-# print('Accuracy at k = %d: %f' % (k,  np.mean((bagPredictions == BAG_TEST).astype(int))))
-#
-# #mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
-# emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-# #total_savings = mi_savings + (1 - mi_savings) * emi_savings
-# #print('Savings due to MI-RNN : %f' % mi_savings)
-# print('EMI savings due to Early prediction: %f' % emi_savings)
-# #print('Total Savings: %f' % (total_savings))
-
-
-# A slightly more detailed analysis method is provided.
-#df = emiDriver.analyseModel(predictions, BAG_TEST, NUM_SUBINSTANCE, NUM_OUTPUT)
-
 # Pick the best model
 devnull = open(os.devnull, 'r')
 acc = 0.0
 
 # Read model stats file
-with open(os.path.join(data_dir, '48_16', 'modelstats_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
+with open(os.path.join(data_dir, 'modelstats_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
                                           + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep=' + str(NUM_EPOCHS)
                                           + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
                                           + '_bs=' + str(BATCH_SIZE) + '.csv'), 'r') as stats_csv:
@@ -242,7 +218,8 @@ with open(os.path.join(data_dir, '48_16', 'modelstats_O=' + str(NUM_OUTPUT) + '_
 
 print('Best Model: ', modelPrefix, globalStep)
 
-emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
 
@@ -258,34 +235,9 @@ bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
 utils.printFormattedConfusionMatrix(bagcmatrix)
 print('\n')
 
-# # Get class recalls
-# recalllist = np.sum(bagcmatrix, axis=0)
-# recalllist = [bagcmatrix[i][i] / x if x !=
-#                   0 else -1 for i, x in enumerate(recalllist)]
-#
-# # Print model size
-# metaname = modelPrefix + '-%d.meta' % globalStep
-# modelsize = utils.getModelSize(metaname)
-#
-# #mi_savings = (1 - NUM_TIMESTEPS / ORIGINAL_NUM_TIMESTEPS)
-# emi_savings = getEarlySaving(predictionStep, NUM_TIMESTEPS)
-# #total_savings = mi_savings + (1 - mi_savings) * emi_savings
-# print('EMI savings due to Early prediction: %f' % emi_savings)
-# #print("Total Savings: %f" % total_savings)
-#
-# # Create result string
-# results_list = [args.gN, args.uN, args.uR, args.wR, args.rnd, args.ep, args.it, args.bs, args.H,
-#        k, emi_savings, modelsize, acc, test_acc]
-# for recall in recalllist:
-#     results_list.append(recall)
-#
-# # If 2-class (Targets vs noise), append modelstats
-# if NUM_OUTPUT == 2:
-#     results_list.append(modelstatefile)
-#
-# # Print to output file
-# out_handle = open(args.out, "a")
-# # Write a line of output
-# out_handle.write('\t'.join(map(str, results_list)) + '\n')
-# out_handle.close()
+print('Obtaining trained graph variables')
+emiDriver.save_model_json(graph, '../../../Pranshu_2class/model_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
+                                          + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep=' + str(NUM_EPOCHS)
+                                          + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
+                                          + '_bs=' + str(BATCH_SIZE) + '.json')
 

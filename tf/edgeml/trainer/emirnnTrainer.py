@@ -8,6 +8,7 @@ import numpy as np
 import sys
 import edgeml.utils as utils
 import pandas as pd
+import json, codecs
 
 
 class EMI_Trainer_2Tier:
@@ -1478,6 +1479,45 @@ class EMI_Driver:
             print('Recall %f at subsequencelength %d' %
                   (df['rec_01'].values[idx], idx + 1), file=redirFile)
         return df
+
+
+    # Added by Dhrubo
+    def save_model_json(self, graph, outfile_json):
+        sess = self.__sess
+        vars = tf.trainable_variables()
+        var_names = [var.name for var in vars]
+        vars_vals = [val.tolist() for val in sess.run(vars)]
+
+        data = dict(zip(var_names, vars_vals))
+        for key, val in data.items():
+             print("Variable: {}, value: {}".format(key, val))
+
+        # Dump to json
+        json.dump(data, codecs.open(outfile_json, 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
+
+        # Test json
+        load_data = json.loads(codecs.open(outfile_json, 'r', encoding='utf-8').read())
+
+        # Convert values to numpy arrays
+        load_data.update((k, np.array(v)) for k, v in load_data.items())
+        pass
+
+    # Added by Dhrubo
+    def freeze_graph(self, graph):
+        '''
+        Freeze graph
+        '''
+
+        sess = self.__sess
+        # We use a built-in TF helper to export variables to constants
+        output_graph_def = tf.graph_util.convert_variables_to_constants(
+            sess,  # The session is used to retrieve the weights
+            graph.as_graph_def(),  # The graph_def is used to retrieve the nodes
+            ['y_cap_tata'], # output_node_names,
+            variable_names_whitelist=tf.trainable_variables()
+        )
+
+        return output_graph_def
 
     # Added by Sangeeta
     def getInstanceEmbeddings(self, graph, x, y, batchSize=1024, feedDict=None, **kwargs):
