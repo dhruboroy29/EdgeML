@@ -237,7 +237,7 @@ emiDriver.save_model_npy(modelloc)
 # Run quantization
 os.system("rm -r " + modelloc + "/QuantizedFastModel/")
 os.system(
-    "python3 " + os.path.abspath('../../EdgeML/tf/examples/FastCells/quantizeFastModels.py') + " -dir " + modelloc)
+    "python3 " + os.path.abspath('../FastCells/quantizeFastModels.py') + " -dir " + modelloc)
 
 qW1 = np.load(modelloc + "/QuantizedFastModel/qW1.npy")
 qFC_Bias = np.load(modelloc + "/QuantizedFastModel/qFC_Bias.npy")
@@ -274,7 +274,9 @@ def nonlin(code, x, scale):
     elif (code == "quantSigm"):
         return quantSigm(x, scale)
 
+
 fpt = int
+
 
 def predict(points, lbls, I):
     pred_lbls = []
@@ -285,12 +287,11 @@ def predict(points, lbls, I):
         for t in range(seq_max_len):
             x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
                          dtype=fpt).reshape((-1, 1))
-            pre = np.array((np.matmul(np.transpose(qW2), np.matmul(np.transpose(qW1), x)) + np.matmul(np.transpose(qU2),
-                                                                                                      np.matmul(
-                                                                                                          np.transpose(
-                                                                                                              qU1),
-                                                                                                          h))) / (
-                                   q * 1), dtype=fpt)
+            pre = np.array(
+                (np.matmul(np.transpose(qW2), np.matmul(np.transpose(qW1), x)) + np.matmul(np.transpose(qU2),
+                                                                                           np.matmul(np.transpose(qU1),
+                                                                                                     h))) / (
+                        q * 1), dtype=fpt)
             h_ = np.array(nonlin(UPDATE_NL, pre + qB_h * I, q * I) / (q), dtype=fpt)
             z = np.array(nonlin(GATE_NL, pre + qB_g * I, q * I) / (q), dtype=fpt)
             h = np.array((np.multiply(z, h) + np.array(np.multiply(fpt(I * zeta) * (I - z) + fpt(I * nu) * I, h_) / I,
@@ -301,6 +302,7 @@ def predict(points, lbls, I):
     # print(lbls)
     # print(pred_lbls)
     print(float((pred_lbls == lbls).sum()) / lbls.shape[0])
+
 
 for I in range(10):
     predict(train_cuts, train_cuts_lbls, pow(10, I))
