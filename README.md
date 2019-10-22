@@ -1,3 +1,9 @@
+## BuildSys 2019 Demo Instructions
+
+**1. Quantize model at various scales**
+`python3 01_quantize_emi_fastgrnn_disp_det.py -O 2 -gN quantSigm -uN quantTanh -bs 64 -H 32 -Dat /mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/Data/Austere/BuildSys_Demo/Windowed/winlen_256_stride_128/12_8 -rnd 5 -it 10 -ep 50 -ots 256 -k 6`
+
+
 ## Edge Machine Learning
 
 This repository provides code for machine learning algorithms for edge devices
