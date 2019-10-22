@@ -287,7 +287,7 @@ def predict_float(points):
         for t in range(points.shape[1]):
             # x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
             #              dtype=fpt).reshape((-1, 1))
-            x = np.array((I * points[i, t] - mean.astype(fpt)) / std.astype(fpt), dtype=fpt).reshape((-1, 1))
+            x = np.array((I * (points[i, t] - mean.astype(fpt))) / std.astype(fpt), dtype=fpt).reshape((-1, 1))
             pre = np.array(
                 (np.matmul(np.transpose(W2), np.matmul(np.transpose(W1), x)) + np.matmul(np.transpose(U2),
                                                                                          np.matmul(np.transpose(U1),
