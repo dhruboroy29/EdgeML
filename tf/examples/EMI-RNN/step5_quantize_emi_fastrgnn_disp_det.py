@@ -282,7 +282,6 @@ def nonlin(code, x, scale):
 
 fpt = int
 
-
 def predict(points, I):
     pred_lbls = []
 
@@ -294,7 +293,7 @@ def predict(points, I):
         for t in range(points.shape[1]):
             # x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
             #              dtype=fpt).reshape((-1, 1))
-            x = np.array((I * points[i, t] - fpt(mean)) / fpt(std), dtype=fpt).reshape((-1, 1))
+            x = np.array((I * points[i, t] - mean) / std, dtype=fpt).reshape((-1, 1))
             pre = np.array(
                 (np.matmul(np.transpose(qW2), np.matmul(np.transpose(qW1), x)) + np.matmul(np.transpose(qU2),
                                                                                            np.matmul(np.transpose(qU1),
@@ -314,15 +313,16 @@ def predict(points, I):
 
 for I in range(10):
     predictions = []
+    scale = pow(10, I)
     for bag in range(NUM_BAGS):
-        instance_preds = predict(x_test[bag], pow(10, I))
+        instance_preds = predict(x_test[bag], scale)
         predictions.append(instance_preds)
 
     predictions = np.array(predictions)
     bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
 
     print('--------------------------------------------')
-    print('Predictions for scale {}'.format(pow(10, I)))
+    print('Predictions for scale {}'.format(scale))
     print('--------------------------------------------')
 
     test_acc = np.mean((bagPredictions == BAG_TEST).astype(int))
