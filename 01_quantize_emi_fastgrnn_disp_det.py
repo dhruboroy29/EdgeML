@@ -8,7 +8,6 @@ import csv
 import json, codecs
 
 # Making sure edgeml is part of python path
-sys.path.insert(0, '../tf/')
 sys.path.insert(0, 'tf/')
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 config = tf.ConfigProto()
@@ -105,7 +104,7 @@ BAG_TEST = np.argmax(y_test[:, 0, :], axis=1)
 # BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
 
 # Get mean and std
-statsfile = '../../../buildsys_model/train_stats.json'
+statsfile = 'buildsys_model/train_stats.json'
 load_stats = json.loads(codecs.open(statsfile, 'r', encoding='utf-8').read())
 # Convert values to numpy arrays
 load_stats.update((k, np.array(v)) for k, v in load_stats.items())
@@ -230,15 +229,13 @@ print('\n')
 
 # Save model
 print('Saving model...')
-modelloc = '../../../buildsys_model/model_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k) \
+modelloc = 'buildsys_model/model_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k) \
            + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep=' + str(NUM_EPOCHS) \
            + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) \
            + '_bs=' + str(BATCH_SIZE)
 
 os.makedirs(modelloc, exist_ok=True)
 emiDriver.save_model_npy(modelloc)
-
-print('Testing model conversion to vector operations...')
 
 W1 = np.load(modelloc + "/W1.npy")
 FC_Bias = np.load(modelloc + "/FC_Bias.npy")
@@ -272,7 +269,6 @@ def nonlin(code, x, scale):
     elif (code == "quantSigm"):
         return quantSigm(x, scale)
 
-fpt = float
 
 def predict_float(points):
     pred_lbls = []
@@ -282,21 +278,21 @@ def predict_float(points):
     I = q = 1.0
 
     for i in range(points.shape[0]):
-        h = np.array(np.zeros((NUM_HIDDEN, 1)), dtype=fpt)
+        h = np.array(np.zeros((NUM_HIDDEN, 1)), dtype=float)
         # print(h)
         for t in range(points.shape[1]):
-            # x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
-            #              dtype=fpt).reshape((-1, 1))
-            x = np.array((I * (points[i, t] - mean.astype(fpt))) / std.astype(fpt), dtype=fpt).reshape((-1, 1))
+            # x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - float(mean))) / float(std),
+            #              dtype=float).reshape((-1, 1))
+            x = np.array((I * (points[i, t] - mean.astype(float))) / std.astype(float), dtype=float).reshape((-1, 1))
             pre = np.array(
                 (np.matmul(np.transpose(W2), np.matmul(np.transpose(W1), x)) + np.matmul(np.transpose(U2),
                                                                                          np.matmul(np.transpose(U1),
                                                                                                    h))) / (
-                        q * 1), dtype=fpt)
-            h_ = np.array(nonlin(UPDATE_NL, pre + B_h * I, q * I) / (q), dtype=fpt)
-            z = np.array(nonlin(GATE_NL, pre + B_g * I, q * I) / (q), dtype=fpt)
-            h = np.array((np.multiply(z, h) + np.array(np.multiply(fpt(I * zeta) * (I - z) + fpt(I * nu) * I, h_) / I,
-                                                       dtype=fpt)) / I, dtype=fpt)
+                        q * 1), dtype=float)
+            h_ = np.array(nonlin(UPDATE_NL, pre + B_h * I, q * I) / (q), dtype=float)
+            z = np.array(nonlin(GATE_NL, pre + B_g * I, q * I) / (q), dtype=float)
+            h = np.array((np.multiply(z, h) + np.array(np.multiply(float(I * zeta) * (I - z) + float(I * nu) * I, h_) / I,
+                                                       dtype=float)) / I, dtype=float)
 
         pred_lbls.append(np.argmax(np.matmul(np.transpose(h), FC_Weight) + FC_Bias))
     return np.array(pred_lbls)
@@ -304,6 +300,10 @@ def predict_float(points):
     # print(pred_lbls)
     # print(float((pred_lbls == lbls).sum()) / lbls.shape[0])
 
+results_list = []
+
+print('Testing float inference pipeline...')
+# Test float pipeline
 predictions = []
 for bag in range(NUM_BAGS):
     instance_preds = predict_float(x_test_unnorm[bag])
@@ -319,3 +319,97 @@ print('\n')
 bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
 utils.printFormattedConfusionMatrix(bagcmatrix)
 print('\n')
+
+# Get class recalls
+recalllist = np.sum(bagcmatrix, axis=0)
+recalllist = [bagcmatrix[i][i] / x if x != 0 else -1 for i, x in enumerate(recalllist)]
+
+results = ['float', test_acc]
+for recall in recalllist:
+    results.append(recall)
+
+results_list.append(results)
+
+######## Now test quant pipeline ########
+
+# Run quantization
+print('Quantizating models...')
+os.system("rm -r " + modelloc + "/QuantizedFastModel/")
+os.system("python3 " + os.path.abspath('tf/examples/FastCells/quantizeFastModels.py') + " -dir " + modelloc)
+
+qW1 = np.load(modelloc + "/QuantizedFastModel/qW1.npy")
+qFC_Bias = np.load(modelloc + "/QuantizedFastModel/qFC_Bias.npy")
+qW2 = np.load(modelloc + "/QuantizedFastModel/qW2.npy")
+qU2 = np.load(modelloc + "/QuantizedFastModel/qU2.npy")
+qFC_Weight = np.load(modelloc + "/QuantizedFastModel/qFC_Weight.npy")
+qU1 = np.load(modelloc + "/QuantizedFastModel/qU1.npy")
+qB_g = np.transpose(np.load(modelloc + "/QuantizedFastModel/qB_g.npy"))
+qB_h = np.transpose(np.load(modelloc + "/QuantizedFastModel/qB_h.npy"))
+q = np.load(modelloc + "/QuantizedFastModel/paramScaleFactor.npy")
+
+fpt = int
+
+def predict_quant(points, I):
+    pred_lbls = []
+
+    assert points.ndim == 3
+
+    for i in range(points.shape[0]):
+        h = np.array(np.zeros((NUM_HIDDEN, 1)), dtype=fpt)
+        # print(h)
+        for t in range(points.shape[1]):
+            # x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
+            #              dtype=fpt).reshape((-1, 1))
+            x = np.array((I * (points[i, t] - mean.astype(fpt))) / std.astype(fpt), dtype=fpt).reshape((-1, 1))
+            pre = np.array(
+                (np.matmul(np.transpose(qW2), np.matmul(np.transpose(qW1), x)) + np.matmul(np.transpose(qU2),
+                                                                                           np.matmul(np.transpose(qU1),
+                                                                                                     h))) / (
+                        q * 1), dtype=fpt)
+            h_ = np.array(nonlin(UPDATE_NL, pre + qB_h * I, q * I) / (q), dtype=fpt)
+            z = np.array(nonlin(GATE_NL, pre + qB_g * I, q * I) / (q), dtype=fpt)
+            h = np.array((np.multiply(z, h) + np.array(np.multiply(fpt(I * zeta) * (I - z) + fpt(I * nu) * I, h_) / I,
+                                                       dtype=fpt)) / I, dtype=fpt)
+
+        pred_lbls.append(np.argmax(np.matmul(np.transpose(h), qFC_Weight) + qFC_Bias))
+    return np.array(pred_lbls)
+
+print('Quantizing inferences at various scales...')
+
+for I in range(10):
+    I=5
+    predictions = []
+    scale = pow(10, I)
+    for bag in range(NUM_BAGS):
+        instance_preds = predict_quant(x_test_unnorm[bag], scale)
+        predictions.append(instance_preds)
+
+    predictions = np.array(predictions)
+    bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
+
+    print('--------------------------------------------')
+    print('Predictions for scale {}'.format(scale))
+    print('--------------------------------------------')
+
+    test_acc = np.mean((bagPredictions == BAG_TEST).astype(int))
+    print(', Test Accuracy (k = %d): %f, ' % (k, test_acc), end='')
+    # Print confusion matrix
+    print('\n')
+    bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
+    utils.printFormattedConfusionMatrix(bagcmatrix)
+    print('\n')
+
+    # Get class recalls
+    recalllist = np.sum(bagcmatrix, axis=0)
+    recalllist = [bagcmatrix[i][i] / x if x != 0 else -1 for i, x in enumerate(recalllist)]
+
+    results = ['Scale={}'.format(scale), test_acc]
+    for recall in recalllist:
+        results.append(recall)
+
+    results_list.append(results)
+
+print('Done. Printing results summary...\n')
+# Print consolidated results for incorporating on a spreadsheet
+for results in results_list:
+    print('\t'.join(map(str, results)))
