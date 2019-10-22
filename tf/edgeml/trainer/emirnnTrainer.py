@@ -1482,7 +1482,36 @@ class EMI_Driver:
 
 
     # Added by Dhrubo
-    def save_model_json(self, graph, outfile_json):
+    def save_model_npy(self, modelloc):
+        sess = self.__sess
+        variables_names = [v.name for v in tf.trainable_variables()]
+        values = sess.run(variables_names)
+
+        for k, v in zip(variables_names, values):
+            if (k == 'W1:0'):
+                np.save(modelloc + '/' + "FC_Weight", v)
+            if (k == 'B1:0'):
+                np.save(modelloc + '/' + "FC_Bias", v)
+            if (k.find("FastGRNNcell/W1") != -1):
+                np.save(modelloc + '/' + "W1", v)
+            if (k.find("FastGRNNcell/W2") != -1):
+                np.save(modelloc + '/' + "W2", v)
+            if (k.find("FastGRNNcell/U1") != -1):
+                np.save(modelloc + '/' + "U1", v)
+            if (k.find("FastGRNNcell/U2") != -1):
+                np.save(modelloc + '/' + "U2", v)
+            if (k.find("FastGRNNcell/zeta") != -1):
+                np.save(modelloc + '/' + "zeta", v)
+            if (k.find("FastGRNNcell/nu") != -1):
+                np.save(modelloc + '/' + "nu", v)
+            if (k.find("FastGRNNcell/B_g") != -1):
+                np.save(modelloc + '/' + "B_g", v)
+            if (k.find("FastGRNNcell/B_h") != -1):
+                np.save(modelloc + '/' + "B_h", v)
+
+
+    # Added by Dhrubo
+    def save_model_json(self, outfile_json):
         sess = self.__sess
         vars = tf.trainable_variables()
         var_names = [var.name for var in vars]
