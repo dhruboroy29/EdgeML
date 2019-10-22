@@ -104,9 +104,3 @@ bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
 utils.printFormattedConfusionMatrix(bagcmatrix)
 print('\n')
 
-print('Obtaining trained graph variables')
-emiDriver.save_model_json(graph, '../../../buildsys_model/model_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
-                                          + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep=' + str(NUM_EPOCHS)
-                                          + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
-                                          + '_bs=' + str(BATCH_SIZE) + '.json')
-
