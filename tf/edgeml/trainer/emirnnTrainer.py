@@ -1524,6 +1524,7 @@ class EMI_Driver:
         # Dump to json
         json.dump(data, codecs.open(outfile_json, 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
 
+
     # Added by Dhrubo
     def freeze_graph(self, graph):
         '''
@@ -1540,6 +1541,7 @@ class EMI_Driver:
         )
 
         return output_graph_def
+
 
     # Added by Sangeeta
     def getInstanceEmbeddings(self, graph, x, y, batchSize=1024, feedDict=None, **kwargs):

@@ -80,18 +80,6 @@ NUM_ITER = args.it  # 4
 NUM_ROUNDS = args.rnd  # 10
 # LEARNING_RATE=0.001
 
-# A staging directory to store models
-MODEL_PREFIX = '/scratch/' + getpass.getuser() + '/model-fgrnn/' + str(int(time.time())) + '/'
-
-# Make model directory
-try:
-    os.makedirs(MODEL_PREFIX)
-except OSError as exc:  # Python >2.5
-    if exc.errno == errno.EEXIST and os.path.isdir(MODEL_PREFIX):
-        pass
-    else:
-        raise
-
 # Loading the data
 data_dir = args.Dat  # '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
 # 'Raw_winlen_256_stride_171/48_16/'
