@@ -1495,12 +1495,6 @@ class EMI_Driver:
         # Dump to json
         json.dump(data, codecs.open(outfile_json, 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
 
-        # Test json
-        load_data = json.loads(codecs.open(outfile_json, 'r', encoding='utf-8').read())
-
-        # Convert values to numpy arrays
-        load_data.update((k, np.array(v)) for k, v in load_data.items())
-
     # Added by Dhrubo
     def freeze_graph(self, graph):
         '''
