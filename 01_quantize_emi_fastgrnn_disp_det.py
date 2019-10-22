@@ -215,6 +215,8 @@ graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                                minProb=0.99, keep_prob=1.0)
 
+results_list = []
+
 bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
 print("Round: %2d, window length: %3d, Validation accuracy: %.4f" % (round_, ORIGINAL_NUM_TIMESTEPS, acc), end='')
 print(', Test Accuracy (k = %d): %f, ' % (k, np.mean((bagPredictions == BAG_TEST).astype(int))), end='')
@@ -226,6 +228,16 @@ print('\n')
 bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
 utils.printFormattedConfusionMatrix(bagcmatrix)
 print('\n')
+
+# Get class recalls
+recalllist = np.sum(bagcmatrix, axis=0)
+recalllist = [bagcmatrix[i][i] / x if x != 0 else -1 for i, x in enumerate(recalllist)]
+
+results = ['TensorFlow', test_acc]
+for recall in recalllist:
+    results.append(recall)
+
+results_list.append(results)
 
 # Save model
 print('Saving model...')
@@ -300,7 +312,6 @@ def predict_float(points):
     # print(pred_lbls)
     # print(float((pred_lbls == lbls).sum()) / lbls.shape[0])
 
-results_list = []
 
 print('Testing float inference pipeline...')
 # Test float pipeline
