@@ -1,5 +1,8 @@
 ## BuildSys 2019 Demo Instructions
 
+**Link to windowed data**
+https://osu.box.com/s/vonqlbglm6gdtv0yosxnnp41o73m4dvk
+
 **1. Quantize model at various scales**
 
 `python3 01_quantize_emi_fastgrnn_disp_det.py -O 2 -gN quantSigm -uN quantTanh -bs 64 -H 32 -Dat /path/to/windowed/data/winlen_256_stride_128/12_8 -rnd 5 -it 10 -ep 50 -ots 256 -k 6`
