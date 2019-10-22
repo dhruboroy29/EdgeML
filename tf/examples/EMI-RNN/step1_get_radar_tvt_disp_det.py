@@ -80,17 +80,36 @@ for dir in list_dirs:
                                                       test_size=args.spl * (len(y_train) + len(y_test)) / len(y_train),
                                                       random_state=42)
 
-    # # Train data
-    # x_train, y_train = getRadarData(os.path.join(extractedDir,dir+'_train'))
-    #
-    # # Validation data
-    # x_val, y_val = getRadarData(os.path.join(extractedDir, dir + '_val'))
-    #
-    # # Test data
-    # x_test, y_test = getRadarData(os.path.join(extractedDir, dir + '_test'))
-
+    # Feature dimension and number of timesteps
     feats = x_train.shape[-1]
     timesteps = x_train.shape[-2]
+
+    # Create EMI data
+    outDir = extractedDir + '/%d_%d/' % (subinstanceLen, subinstanceStride)
+
+    print('subinstanceLen', subinstanceLen)
+    print('subinstanceStride', subinstanceStride)
+    print('Feature_length', feats)
+    print('outDir', outDir)
+    try:
+        os.mkdir(outDir)
+    except OSError:
+        exit("Could not create %s" % outDir)
+    assert len(os.listdir(outDir)) == 0
+
+    # one-hot encoding of labels
+    numOutput = 2
+    y_train = one_hot(y_train, numOutput)
+    y_val = one_hot(y_val, numOutput)
+    y_test = one_hot(y_test, numOutput)
+
+    # Save test points before normalization (for testing execution pipeline)
+    x_bag_test, y_bag_test = bagData(x_test, y_test, subinstanceLen, subinstanceStride,
+                                     numClass=numOutput, numSteps=timesteps, numFeats=feats)
+    print('Shape of x_bag_test (unnormalized)', x_bag_test.shape)
+
+    np.save(outDir + '/x_test_unnorm.npy', x_bag_test)
+
 
     # Normalize train, test, validation
     x_train = np.reshape(x_train, [-1, feats])
@@ -117,26 +136,6 @@ for dir in list_dirs:
     x_test = x_test - mean
     x_test = x_test / std
     x_test = np.reshape(x_test, [-1, timesteps, feats])
-
-    # one-hot encoding of labels
-    numOutput = 2
-    y_train = one_hot(y_train, numOutput)
-    y_val = one_hot(y_val, numOutput)
-    y_test = one_hot(y_test, numOutput)
-
-
-    # Create EMI data
-    outDir = extractedDir + '/%d_%d/' % (subinstanceLen, subinstanceStride)
-
-    print('subinstanceLen', subinstanceLen)
-    print('subinstanceStride', subinstanceStride)
-    print('Feature_length', feats)
-    print('outDir', outDir)
-    try:
-        os.mkdir(outDir)
-    except OSError:
-        exit("Could not create %s" % outDir)
-    assert len(os.listdir(outDir)) == 0
 
     x_bag_train, y_bag_train = bagData(x_train, y_train, subinstanceLen, subinstanceStride,
                                        numClass=numOutput, numSteps=timesteps, numFeats=feats)
