@@ -4,9 +4,8 @@ import sys
 import tensorflow as tf
 import numpy as np
 import argparse
-import time
 import csv
-import getpass
+import json, codecs
 
 # Making sure edgeml is part of python path
 sys.path.insert(0, '../tf/')
@@ -84,29 +83,26 @@ NUM_ROUNDS = args.rnd  # 10
 data_dir = args.Dat  # '/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Displacement_Detection/Data/Austere_subset_features/' \
 # 'Raw_winlen_256_stride_171/48_16/'
 
-x_train, y_train = np.load(os.path.join(data_dir, 'x_train.npy')), np.load(os.path.join(data_dir, 'y_train.npy'))
-x_test, y_test = np.load(os.path.join(data_dir, 'x_test.npy')), np.load(os.path.join(data_dir, 'y_test.npy'))
-x_val, y_val = np.load(os.path.join(data_dir, 'x_val.npy')), np.load(os.path.join(data_dir, 'y_val.npy'))
+# x_train, y_train = np.load(os.path.join(data_dir, 'x_train.npy')), np.load(os.path.join(data_dir, 'y_train.npy'))
+x_test, y_test = np.load(os.path.join(data_dir, 'x_test_unnorm.npy')), np.load(os.path.join(data_dir, 'y_test_unnorm.npy'))
+# x_val, y_val = np.load(os.path.join(data_dir, 'x_val.npy')), np.load(os.path.join(data_dir, 'y_val.npy'))
 
 # BAG_TEST, BAG_TRAIN, BAG_VAL represent bag_level labels. These are used for the label update
 # step of EMI/MI RNN
 BAG_TEST = np.argmax(y_test[:, 0, :], axis=1)
-BAG_TRAIN = np.argmax(y_train[:, 0, :], axis=1)
-BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
+# BAG_TRAIN = np.argmax(y_train[:, 0, :], axis=1)
+# BAG_VAL = np.argmax(y_val[:, 0, :], axis=1)
 
 # Inferred params
-NUM_SUBINSTANCE = x_train.shape[1]
-NUM_TIMESTEPS = x_train.shape[2]
-NUM_FEATS = x_train.shape[-1]
+NUM_BAGS = x_test.shape[0]
+NUM_SUBINSTANCE = x_test.shape[1]
+NUM_TIMESTEPS = x_test.shape[2]
+NUM_FEATS = x_test.shape[-1]
 
-print("x_train shape is:", x_train.shape)
-print("y_train shape is:", y_train.shape)
-print("x_test shape is:", x_val.shape)
-print("y_test shape is:", y_val.shape)
-
-# Adjustment for max k: number of subinstances
-if k == 100:
-    k = x_train.shape[1]
+# print("x_train shape is:", x_train.shape)
+# print("y_train shape is:", y_train.shape)
+print("x_test shape is:", x_test.shape)
+print("y_test shape is:", x_test.shape)
 
 
 # Define the linear secondary classifier
@@ -258,6 +254,15 @@ nu = np.load(modelloc + "/nu.npy")
 nu = 1 / (1 + np.exp(-nu))
 
 
+# Get mean and std
+statsfile = '../../../buildsys_model/train_stats.json'
+load_stats = json.loads(codecs.open(statsfile, 'r', encoding='utf-8').read())
+# Convert values to numpy arrays
+load_stats.update((k, np.array(v)) for k, v in load_stats.items())
+
+mean = load_stats['mean']
+std = load_stats['std']
+
 # I = 1
 
 def quantTanh(x, scale):
@@ -278,15 +283,18 @@ def nonlin(code, x, scale):
 fpt = int
 
 
-def predict(points, lbls, I):
+def predict(points, I):
     pred_lbls = []
 
+    assert points.ndim == 3
+
     for i in range(points.shape[0]):
-        h = np.array(np.zeros((hidden_dim, 1)), dtype=fpt)
+        h = np.array(np.zeros((NUM_HIDDEN, 1)), dtype=fpt)
         # print(h)
-        for t in range(seq_max_len):
-            x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
-                         dtype=fpt).reshape((-1, 1))
+        for t in range(points.shape[1]):
+            # x = np.array((I * (np.array(points[i][slice(t * stride, t * stride + window)]) - fpt(mean))) / fpt(std),
+            #              dtype=fpt).reshape((-1, 1))
+            x = np.array((I * points[i, t] - fpt(mean)) / fpt(std), dtype=fpt).reshape((-1, 1))
             pre = np.array(
                 (np.matmul(np.transpose(qW2), np.matmul(np.transpose(qW1), x)) + np.matmul(np.transpose(qU2),
                                                                                            np.matmul(np.transpose(qU1),
@@ -298,11 +306,29 @@ def predict(points, lbls, I):
                                                        dtype=fpt)) / I, dtype=fpt)
 
         pred_lbls.append(np.argmax(np.matmul(np.transpose(h), qFC_Weight) + qFC_Bias))
-    pred_lbls = np.array(pred_lbls)
+    return np.array(pred_lbls)
     # print(lbls)
     # print(pred_lbls)
-    print(float((pred_lbls == lbls).sum()) / lbls.shape[0])
+    # print(float((pred_lbls == lbls).sum()) / lbls.shape[0])
 
 
 for I in range(10):
-    predict(train_cuts, train_cuts_lbls, pow(10, I))
+    predictions = []
+    for bag in range(NUM_BAGS):
+        instance_preds = predict(x_test[bag], pow(10, I))
+        predictions.append(instance_preds)
+
+    predictions = np.array(predictions)
+    bagPredictions = emiDriver.getBagPredictions(predictions, k=k, numClass=NUM_OUTPUT)
+
+    print('--------------------------------------------')
+    print('Predictions for scale {}'.format(pow(10, I)))
+    print('--------------------------------------------')
+
+    test_acc = np.mean((bagPredictions == BAG_TEST).astype(int))
+    print(', Test Accuracy (k = %d): %f, ' % (k, test_acc), end='')
+    # Print confusion matrix
+    print('\n')
+    bagcmatrix = utils.getConfusionMatrix(bagPredictions, BAG_TEST, NUM_OUTPUT)
+    utils.printFormattedConfusionMatrix(bagcmatrix)
+    print('\n')
