@@ -197,10 +197,10 @@ devnull = open(os.devnull, 'r')
 acc = 0.0
 
 # Read model stats file
-with open(os.path.join(data_dir, 'modelstats_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
+with open(os.path.join('buildsys_model', 'model_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k)
                                  + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep=' + str(NUM_EPOCHS)
                                  + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS)
-                                 + '_bs=' + str(BATCH_SIZE) + '.csv'), 'r') as stats_csv:
+                                 + '_bs=' + str(BATCH_SIZE), 'modelstats.csv'), 'r') as stats_csv:
     modelStats = csv.reader(stats_csv)
     header = next(modelStats)
     for row in modelStats:
@@ -244,7 +244,7 @@ print('Saving model...')
 modelloc = 'buildsys_model/model_O=' + str(NUM_OUTPUT) + '_H=' + str(NUM_HIDDEN) + '_k=' + str(k) \
            + '_gN=' + GATE_NL + '_uN=' + UPDATE_NL + '_ep=' + str(NUM_EPOCHS) \
            + '_it=' + str(NUM_ITER) + '_rnd=' + str(NUM_ROUNDS) \
-           + '_bs=' + str(BATCH_SIZE)
+           + '_bs=' + str(BATCH_SIZE) + '/Params'
 
 os.makedirs(modelloc, exist_ok=True)
 emiDriver.save_model_npy(modelloc)
