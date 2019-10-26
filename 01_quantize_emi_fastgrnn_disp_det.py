@@ -379,6 +379,7 @@ def predict_quant(points, I):
                         q * 1), dtype=fpt)
             h_ = np.array(nonlin(UPDATE_NL, pre + qB_h * I, q * I) / (q), dtype=fpt)
             z = np.array(nonlin(GATE_NL, pre + qB_g * I, q * I) / (q), dtype=fpt)
+            zeta, nu =1, 0
             h = np.array((np.multiply(z, h) + np.array(np.multiply(fpt(I * zeta) * (I - z) + fpt(I * nu) * I, h_) / I,
                                                        dtype=fpt)) / I, dtype=fpt)
 
