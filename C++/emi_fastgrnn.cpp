@@ -12,7 +12,7 @@ static const ll qW1_transp_l[][8] = {{-1,2,-6,-4,5,1,4,6},{0,-5,-6,1,4,7,0,-6},{
 static const ll qFC_Bias_l[2] = {21,35};
 static const ll qW2_transp_l[][5] = {{-1,-2,-1,-4,3},{-2,-10,0,2,1},{9,-3,7,-15,-5},{-5,2,-3,-8,9},{-1,0,-7,-6,-6},{-4,-2,-2,-1,-3},{2,2,2,1,3},{10,-4,-5,-1,4},{-6,2,8,-2,-7},{-4,9,-4,10,5},{-6,-17,-3,-4,-3},{-2,2,-4,-1,-4},{-4,0,-3,-7,10},{4,-1,2,2,-3},{2,1,0,0,2},{4,13,2,1,0},{2,0,1,3,-2},{9,-2,8,9,-15},{-12,-2,-7,4,0},{5,-1,7,-7,-2},{6,-2,0,6,-8},{-5,1,-6,8,1},{-4,-9,-4,-7,-5},{-11,5,4,7,-5},{2,1,2,-1,0},{0,-1,1,1,0},{-1,0,0,-2,5},{10,-2,3,13,-16},{7,2,12,6,5},{-6,1,-3,-8,10},{1,0,-1,2,-4},{0,0,1,3,-2}};
 static const ll qU2_transp_l[][6] = {{-5,21,-12,16,15,3},{5,1,-1,1,-1,-1},{-4,3,-1,-3,9,-4},{4,-7,-6,-10,3,-5},{5,-2,-4,1,-5,3},{-9,-3,3,-1,11,-9},{-4,6,5,-2,-17,7},{-3,-6,-2,2,-2,-2},{-4,3,-1,-1,3,-2},{-5,-4,3,0,4,-3},{-2,2,6,-3,4,-1},{-4,-8,-3,1,8,-1},{4,2,-22,-13,13,5},{-16,5,3,-8,-3,14},{5,-5,-7,3,-11,6},{2,-5,2,0,6,-3},{6,-8,4,3,-7,1},{1,2,4,-3,2,-8},{17,6,-9,-16,0,-3},{1,-5,6,2,1,1},{-6,-11,-15,-18,12,9},{8,3,0,0,3,0},{2,0,1,1,-17,7},{5,4,-8,-3,-2,1},{10,12,-8,-3,1,2},{1,-1,-1,-6,7,-9},{8,-10,15,3,-7,8},{-13,-5,-13,0,-1,15},{-8,-3,-5,-2,8,-7},{2,-5,6,0,-2,-7},{-3,7,-12,-6,11,-8},{0,-15,2,0,-3,1}};
-static const ll qFC_Weight_l[][2] = {{40,-31},{-22,79},{35,-47},{83,-21},{-52,54},{-1,-23},{33,-77},{-82,23},{-13,-5},{26,-86},{65,-32},{92,-128},{-57,45},{-73,53},{-42,19},{-67,100},{34,-62},{33,-43},{3,-48},{-63,34},{41,-17},{-64,53},{-75,17},{-44,59},{47,-84},{23,-25},{-56,54},{44,7},{-74,44},{-4,38},{-29,11},{-46,-14}};
+static const ll qFC_Weight_l[][32] = {{40,-22,35,83,-52,-1,33,-82,-13,26,65,92,-57,-73,-42,-67,34,33,3,-63,41,-64,-75,-44,47,23,-56,44,-74,-4,-29,-46},{-31,79,-47,-21,54,-23,-77,23,-5,-86,-32,-128,45,53,19,100,-62,-43,-48,34,-17,53,17,59,-84,-25,54,7,44,38,11,-14}};
 static const ll qU1_transp_l[][32] = {{-5,2,3,-4,9,-19,-2,12,11,1,4,4,2,-2,-4,-1,11,1,0,-4,0,-3,-2,3,-1,4,5,-1,6,3,8,12},{11,-5,1,-5,-6,5,5,-7,-7,-3,2,1,0,-1,-9,-2,1,1,-2,-2,-2,-4,-1,-4,17,22,-5,-2,-4,-3,4,13},{1,-12,-2,1,1,14,3,4,1,-1,1,-1,-2,1,4,-10,13,-3,3,-14,7,-9,-4,2,-1,-7,5,-1,2,3,-10,-1},{-7,2,1,-3,4,-6,1,3,6,3,1,2,10,1,8,1,-1,1,-1,2,-4,2,0,1,-7,-6,5,2,3,11,-6,0},{1,-2,-1,1,14,5,-8,14,3,0,-1,18,2,-1,-18,-1,-13,2,1,-7,-3,-7,-3,12,-19,14,0,2,6,2,10,-6},{1,-6,-2,4,4,-7,2,5,-15,-4,-1,-6,0,0,7,1,-8,2,2,-2,-4,-5,5,13,4,0,8,10,4,-9,-7,3}};
 static const ll qB_g_l[32] = {1300000,1700000,1600000,800000,1800000,1600000,1600000,2100000,2000000,1600000,1700000,1900000,1000000,1400000,1400000,2100000,1600000,1800000,1600000,1900000,1400000,1800000,2000000,2000000,1500000,1600000,1700000,1200000,2000000,1600000,1300000,-700000};
 static const ll qB_h_l[32] = {4700000,8500000,2100000,1600000,11800000,3900000,2400000,6000000,7900000,1900000,2300000,3700000,2000000,2400000,4900000,10800000,3100000,2200000,1400000,7600000,1000000,7300000,7900000,12600000,3400000,3100000,2900000,1600000,11900000,6300000,3700000,100000};
@@ -35,10 +35,11 @@ static const int numClasses = 2;
 
 /*************************** END PASTE MODEL PARAMS **************************/
 
-ll out_wRank[wRank] = {};
-ll out_uRank[uRank] = {};
-ll out_inputDims[inputDims] = {};
-ll out_hiddenDims[hiddenDims] = {};
+ll out_wRank[wRank] = {0};
+ll out_uRank[uRank] = {0};
+ll out_inputDims[inputDims] = {0};
+ll out_hiddenDims[hiddenDims] = {0};
+ll out_numClasses[numClasses] = {0};
 
 // Copy uint into ll array
 void copyUIntVecToLL(uint* invec, ll* outvec, int vec_len)
@@ -64,7 +65,7 @@ void mulMatVec(ll* mat, ll* vec, int mat_rows, int vec_len, ll* out){
 	for(int i=0; i < mat_rows; i++){
 		out[i] = 0;
 		for(int j=0; j < vec_len; j++)
-			out[i] += *((mat+i*vec_len)+j)**(vec+j);
+			out[i] += *((mat+i*vec_len)+j)*(*(vec+j));
 	}
 }
 
@@ -83,32 +84,38 @@ void subVecs(ll* vec1, ll* vec2, int vec_len, ll* out){
 //Vector-vector multiplication (Hadamard)
 void mulVecs(ll* vec1, ll* vec2, int vec_len, ll* out){
 	for(int i=0; i < vec_len; i++)
-		out[i] = *(vec1+i)**(vec2+i);
+		out[i] = *(vec1+i)*(*(vec2+i));
 }
 
-// In-place standardization with scaling
-void stdScaleInput(ll* inp_vec, int vec_len){
+// Standardization with scaling
+void stdScaleInput(ll* in_vec, int vec_len, ll* out_vec){
 	for(int i=0; i<vec_len; i++)
-		*(inp_vec+i) = I_l*(*(inp_vec+i)-mean_l[i])/stdev_l[i];
+		*(out_vec+i) = I_l*(*(in_vec+i)-mean_l[i])/stdev_l[i];
 }
 
-// In-place quantTanh
-void quantTanh(ll* vec, int vec_len, ll scale){
+// quantTanh
+void quantTanh(ll* vec, int vec_len, ll scale, ll* out_vec){
 	for(int i=0; i<vec_len; i++)
-		*(vec+i) = max(-scale, min(scale, *(vec+i)));
+		*(out_vec+i) = max(-scale, min(scale, *(vec+i)));
 }
 
-// In-place quantSigm
-void quantSigm(ll* vec, int vec_len, ll scale){
+// quantSigm
+void quantSigm(ll* vec, int vec_len, ll scale, ll* out_vec){
 	for(int i=0; i<vec_len; i++)
-		*(vec+i) = max(min((*(vec+i)+scale)/2, scale),0);
+		*(out_vec+i) = max(min((*(vec+i)+scale)/2, scale),0);
 }
 
 // Vector print utility
-void printVec(ll* vec, int vec_len){
+void util_printVec(ll* vec, int vec_len){
 	for(int i=0; i < vec_len; i++)
 		printf("%lli\t", vec[i]);
-	printf("\n");
+	printf("\n\n");
+}
+
+// Vector deep copy
+void util_deepCopy(ll* src, ll*dst, int vec_len){
+	for(int i=0; i < vec_len; i++)
+		*(dst+i) = *(src+i);
 }
 
 int main(){
@@ -121,41 +128,69 @@ int main(){
 	copyUIntVecToLL(x_int, x, inputDims);
 
 	printf("Sample input array in ll\n");
-	printVec(x, inputDims);
+	util_printVec(x, inputDims);
+
+	stdScaleInput(x, inputDims, x);
 	
-	mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
-	mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, out_hiddenDims);
-	
-	for(int i=0; i < hiddenDims; i++)
-		printf("%lli\t", out_hiddenDims[i]);
-	printf("\n");
+	printf("Post-standardization input\n");
+	util_printVec(x, inputDims);
 
-	ll y[] = {5, 2, -1, -7, 9, 4, 5, 1};
+	ll h[hiddenDims] = {0};
 
-	addVecs(x, y, inputDims, out_inputDims);
+	for(int t=0; t<timeSteps; t++){
+		util_printVec(h, hiddenDims);
 
-	for(int i=0; i < inputDims; i++)
-		printf("%lli\t", out_inputDims[i]);
-	printf("\n");
+		// Precompute
+		ll pre[hiddenDims] = {0};
+		mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
+		mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, pre);
 
-	subVecs(x, y, inputDims, out_inputDims);
+		util_printVec(pre, hiddenDims);
 
-	for(int i=0; i < inputDims; i++)
-		printf("%lli\t", out_inputDims[i]);
-	printf("\n");
+		mulMatVec((ll*)qU1_transp_l, h, uRank, hiddenDims, out_uRank);
+		mulMatVec((ll*)qU2_transp_l, out_uRank, hiddenDims, uRank, out_hiddenDims);
 
-	ll z[] = {5000, 6000, -1024, 7455, 2356, -2500, 7850, 2563};
-	
-	printf("Before standardization:\n");
-	for(int i=0; i < inputDims; i++)
-		printf("%lli\t", z[i]);
-	printf("\n");
+		addVecs(pre, out_hiddenDims, hiddenDims, pre);
 
-	stdScaleInput((ll*)z, inputDims);
+		util_printVec(pre, hiddenDims);
 
-	printf("After standardization:\n");
-	for(int i=0; i < inputDims; i++)
-		printf("%lli\t", z[i]);
-	printf("\n");
+		divVecScal(pre, q_l, hiddenDims, pre);
 
+		util_printVec(pre, hiddenDims);
+
+		// Create h_, z
+		ll h_[hiddenDims] = {0};
+		ll z[hiddenDims] = {0};
+
+		addVecs(pre, (ll*)qB_h_l, hiddenDims, h_);
+		addVecs(pre, (ll*)qB_g_l, hiddenDims, z);
+
+		quantSigm(h_, hiddenDims, q_times_I_l, h_);
+		divVecScal(h_, q_l, hiddenDims, h_);
+
+		quantTanh(z, hiddenDims, q_times_I_l, z);
+		divVecScal(z, q_l, hiddenDims, z);
+
+		util_printVec(h_, hiddenDims);
+		util_printVec(z, hiddenDims);
+
+		// Create new h
+		mulVecs(z, h, hiddenDims, h);
+
+		subVecs((ll*)I_l_vec, z, hiddenDims, out_hiddenDims);
+		mulVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
+		mulVecs(out_hiddenDims, h_, hiddenDims, out_hiddenDims);
+		divVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
+
+		addVecs(h, out_hiddenDims, hiddenDims, h);
+		divVecScal(h, I_l, hiddenDims, h);
+
+		util_printVec(h, hiddenDims);
+	}
+
+	// Classify
+	mulMatVec((ll*)qFC_Weight_l, h, numClasses, hiddenDims, out_numClasses);
+	addVecs(out_numClasses, (ll*)qFC_Bias_l, numClasses, out_numClasses);
+
+	util_printVec(out_numClasses, numClasses);
 }
