@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define min(a,b) (b>a)?a:b
-#define max(a,b) (a>b)?a:b
+#define min(a,b) ((b)>(a))?a:b
+#define max(a,b) ((a)>(b))?a:b
+
+#define UPDATE_NL quantTanh
+#define GATE_NL quantSigm
 
 typedef long long ll;
 
@@ -113,50 +116,59 @@ void util_printVec(ll* vec, int vec_len){
 }
 
 // Vector deep copy
-void util_deepCopy(ll* src, ll*dst, int vec_len){
-	for(int i=0; i < vec_len; i++)
-		*(dst+i) = *(src+i);
+void util_deepCopy(uint* src, uint*dst, int row_index, int vec_len){
+	for(int j=0; j < vec_len; j++)
+		*(dst+j) = *((src+row_index*vec_len)+j);
+}
+
+void util_deepCopy(ll* src, ll*dst, int row_index, int vec_len){
+	for(int j=0; j < vec_len; j++)
+		*(dst+j) = *((src+row_index*vec_len)+j);
 }
 
 int main(){
 	int size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) + sizeof(I_l_vec) + sizeof(q_times_I_l);
 	printf("Model size: %d KB\n\n", size/1000);
 
-	uint x_int[] = {2048, 2050, 2060, 2048, 2070, 2080, 2090, 2050};
-	ll x[8] = {};
-
-	copyUIntVecToLL(x_int, x, inputDims);
-
-	printf("Sample input array in ll\n");
-	util_printVec(x, inputDims);
-
-	stdScaleInput(x, inputDims, x);
-	
-	printf("Post-standardization input\n");
-	util_printVec(x, inputDims);
+	uint test_input[][8] = {{2032,2041,2019,2014,2034,2021,2038,2053},{2017,2051,2017,2041,2039,2050,2013,2056},{2016,2035,2021,2040,2008,2059,2026,2046},{2049,2050,2026,2067,2025,2041,2039,2025},{2025,2056,1994,2039,2015,2037,2029,2049},{2018,2060,2014,2046,2036,2029,2018,2045},{2020,2031,2037,2023,2001,2056,2002,2029},{2031,2028,2041,2059,2024,2060,2052,2036},{2045,2034,2012,2030,2019,1965,2039,2023},{2014,2073,2015,2031,2054,2026,2028,2060},{2023,2020,2046,2020,2035,2037,2012,2029},{2050,2019,2055,2042,2019,2063,2020,2043}};
 
 	ll h[hiddenDims] = {0};
 
 	for(int t=0; t<timeSteps; t++){
-		util_printVec(h, hiddenDims);
+		//util_printVec(h, hiddenDims);
+		uint x_int[inputDims] = {0};
+		util_deepCopy((uint*)test_input, x_int, t, inputDims);
+
+		ll x[8] = {};
+
+		copyUIntVecToLL(x_int, x, inputDims);
+
+		//printf("Current input array in ll\n");
+		//util_printVec(x, inputDims);
+
+		stdScaleInput(x, inputDims, x);
+
+		//printf("Post-standardization input\n");
+		//util_printVec(x, inputDims);
 
 		// Precompute
 		ll pre[hiddenDims] = {0};
 		mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
 		mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, pre);
 
-		util_printVec(pre, hiddenDims);
+		//util_printVec(pre, hiddenDims);
 
 		mulMatVec((ll*)qU1_transp_l, h, uRank, hiddenDims, out_uRank);
 		mulMatVec((ll*)qU2_transp_l, out_uRank, hiddenDims, uRank, out_hiddenDims);
 
 		addVecs(pre, out_hiddenDims, hiddenDims, pre);
 
-		util_printVec(pre, hiddenDims);
+		//util_printVec(pre, hiddenDims);
 
 		divVecScal(pre, q_l, hiddenDims, pre);
 
-		util_printVec(pre, hiddenDims);
+		//printf("Pre at t=%d:\n", t);
+		//util_printVec(pre, hiddenDims);
 
 		// Create h_, z
 		ll h_[hiddenDims] = {0};
@@ -165,14 +177,17 @@ int main(){
 		addVecs(pre, (ll*)qB_h_l, hiddenDims, h_);
 		addVecs(pre, (ll*)qB_g_l, hiddenDims, z);
 
-		quantSigm(h_, hiddenDims, q_times_I_l, h_);
+		UPDATE_NL(h_, hiddenDims, q_times_I_l, h_);
 		divVecScal(h_, q_l, hiddenDims, h_);
 
-		quantTanh(z, hiddenDims, q_times_I_l, z);
+		GATE_NL(z, hiddenDims, q_times_I_l, z);
 		divVecScal(z, q_l, hiddenDims, z);
 
-		util_printVec(h_, hiddenDims);
-		util_printVec(z, hiddenDims);
+		//printf("h_ at t=%d:\n", t);
+		//util_printVec(h_, hiddenDims);
+
+		//printf("z at t=%d:\n", t);
+		//util_printVec(z, hiddenDims);
 
 		// Create new h
 		mulVecs(z, h, hiddenDims, h);
@@ -185,12 +200,14 @@ int main(){
 		addVecs(h, out_hiddenDims, hiddenDims, h);
 		divVecScal(h, I_l, hiddenDims, h);
 
-		util_printVec(h, hiddenDims);
+		//printf("h at t=%d:\n", t);
+		//util_printVec(h, hiddenDims);
 	}
 
 	// Classify
 	mulMatVec((ll*)qFC_Weight_l, h, numClasses, hiddenDims, out_numClasses);
 	addVecs(out_numClasses, (ll*)qFC_Bias_l, numClasses, out_numClasses);
 
+	printf("Classification output:\n");
 	util_printVec(out_numClasses, numClasses);
 }
