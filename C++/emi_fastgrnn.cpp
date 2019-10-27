@@ -40,7 +40,6 @@ static const int numClasses = 2;
 
 ll out_wRank[wRank] = {0};
 ll out_uRank[uRank] = {0};
-ll out_inputDims[inputDims] = {0};
 ll out_hiddenDims[hiddenDims] = {0};
 ll out_numClasses[numClasses] = {0};
 
