@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define min(a,b) (b>a)?a:b
+#define max(a,b) (a>b)?a:b
+
 typedef long long ll;
 
 const long long qW1_transp_l[][8] = {{-1,2,-6,-4,5,1,4,6},{0,-5,-6,1,4,7,0,-6},{-2,-6,6,-1,-6,3,2,4},{-5,-1,6,7,6,1,-3,0},{-7,-6,2,-1,2,-3,-1,1}};
@@ -72,6 +75,25 @@ void mulVecs(ll* vec1, ll* vec2, int vec_len, ll* out){
 		out[i] = *(vec1+i)**(vec2+i);
 }
 
+// In-place standardization with scaling
+void stdScaleInput(ll* inp_vec, int vec_len){
+	for(int i=0; i<vec_len; i++)
+		*(inp_vec+i) = I_l*(*(inp_vec+i)-mean_l[i])/stdev_l[i];
+}
+
+// In-place quantTanh
+void quantTanh(ll* vec, int vec_len, ll scale){
+	for(int i=0; i<vec_len; i++)
+		*(vec+i) = max(-scale, min(scale, *(vec+i)));
+}
+
+// In-place quantSigm
+void quantSigm(ll* vec, int vec_len, ll scale){
+	for(int i=0; i<vec_len; i++)
+		*(vec+i) = max(min((*(vec+i)+scale)/2, scale),0);
+}
+
+
 int main(){
 	int size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l);
 	printf("Model size: %d KB\n", size/1000);
@@ -98,4 +120,19 @@ int main(){
 	for(int i=0; i < inputDims; i++)
 		printf("%lli\t", out_inputDims[i]);
 	printf("\n");
+
+	ll z[] = {5000, 6000, -1024, 7455, 2356, -2500, 7850, 2563};
+	
+	printf("Before standardization:\n");
+	for(int i=0; i < inputDims; i++)
+		printf("%lli\t", z[i]);
+	printf("\n");
+
+	stdScaleInput((ll*)z, inputDims);
+
+	printf("After standardization:\n");
+	for(int i=0; i < inputDims; i++)
+		printf("%lli\t", z[i]);
+	printf("\n");
+
 }
