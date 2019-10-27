@@ -22,7 +22,7 @@ def formatp(v, name):
             print("%d" % arrs[arrs.__len__() - 1][j], end=",")
         print("%d" % arrs[arrs.__len__() - 1][arrs[arrs.__len__() - 1].__len__() - 1], end="}};\n")
     elif v.ndim == 1:
-        print("const ll " + name + "[" + str(v.shape[0]) + "] = {", end="")
+        print("static const ll " + name + "[" + str(v.shape[0]) + "] = {", end="")
         arrs = v.tolist()
         for i in range(arrs.__len__() - 1):
             print("%d" % arrs[i], end=",")
@@ -54,8 +54,9 @@ mean = load_stats['mean']
 std = load_stats['std']
 
 # Convert matrices to C++ format
-print("Copy and run below code to get model size:\n\n")
-print("typedef long long ll;\n")
+# print("Copy and run below code to get model size:\n\n")
+# print("typedef long long ll;\n")
+print("")
 formatp(np.transpose(qW1), 'qW1_transp_l')
 formatp(qFC_Bias, 'qFC_Bias_l')
 formatp(np.transpose(qW2), 'qW2_transp_l')
@@ -71,6 +72,8 @@ print("")
 formatp(q, 'q_l')
 formatp(I, 'I_l')
 formatp(q*I, 'q_times_I_l')
+
+formatp(I*np.ones(qU1.shape[0], dtype=int), 'I_l_vec')
 
 print('\nstatic const int wRank = ' + str(qW2.shape[0]) + ";")
 print('static const int uRank = ' + str(qU2.shape[0]) + ";")
