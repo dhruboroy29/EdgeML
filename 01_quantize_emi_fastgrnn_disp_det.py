@@ -388,7 +388,7 @@ def predict_quant(points, I):
 
 print('Quantizing inferences at various scales...')
 
-for I in [5]:
+for I in range(10):
     predictions = []
     scale = pow(10, I)
     for bag in range(NUM_BAGS):
