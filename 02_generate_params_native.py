@@ -3,6 +3,11 @@ import sys
 import numpy as np
 import json, codecs
 
+I = np.array(pow(10,5))
+num_instances = 8
+num_timesteps = 12
+num_classes = 2
+
 def formatp(v, name):
     if v.ndim == 2:
         arrs = v.tolist()
@@ -25,7 +30,6 @@ def formatp(v, name):
     elif v.ndim == 0:
         print("const long long " + name + "= " + str(v.tolist()) + ";\n")
 
-I = np.array(pow(10,5))
 
 # Load quantized params
 modelloc = 'buildsys_model/model_O=2_H=32_k=6_gN=quantSigm_uN=quantTanh_ep=50_it=10_rnd=5_bs=64/Params'
@@ -67,8 +71,13 @@ formatp(I, 'I_l')
 formatp(mean, 'mean_l')
 formatp(std, 'stdev_l')
 
-print('\nint wRank = ' + str(qW2.shape[0]) + ";")
-print('int uRank = ' + str(qU2.shape[0]) + ";")
+print('\nconst int wRank = ' + str(qW2.shape[0]) + ";")
+print('const int uRank = ' + str(qU2.shape[0]) + ";")
+print('const int inputDims = ' + str(qW1.shape[0]) + ";")
+print('const int hiddenDims = ' + str(qU1.shape[0]) + ";")
+print('const int timeSteps = ' + str(num_timesteps) + ";")
+print('const int numInstances = ' + str(num_instances) + ";")
+print('const int numClasses = ' + str(num_classes) + ";")
 
 print("\nint main(){\n"
       "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l);\n"
