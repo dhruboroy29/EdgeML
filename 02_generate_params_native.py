@@ -1,5 +1,6 @@
 import codecs
 import json
+import sys
 
 import numpy as np
 
@@ -8,27 +9,38 @@ num_instances = 8
 num_timesteps = 12
 num_classes = 2
 
-def formatp(v, name):
-    if v.ndim == 2:
+test_in_path = "/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/" \
+                "Data/Austere/BuildSys_Demo/Windowed/winlen_256_stride_128/12_8/x_test_unnorm.npy"
+
+def formatp(v, name, headless=False, endwith=";\n", file=sys.stdout):
+    if v.ndim == 3:
+        print("uint " + name + "[][" + str(v.shape[1]) + "][" + str(v.shape[2]) + "] = {", end="", file=file)
+        for i in range(v.__len__() - 1):
+            formatp(v[i], 'xyz', headless=True, endwith=",", file=file)
+        formatp(v[v.__len__() - 1], 'xyz', headless=True, endwith="};\n", file=file)
+    elif v.ndim == 2:
         arrs = v.tolist()
-        print("static const ll " + name + "[][" + str(v.shape[1]) + "] = {", end="")
+        if headless:
+            print("{", end="", file=file)
+        else:
+            print("static const ll " + name + "[][" + str(v.shape[1]) + "] = {", end="", file=file)
         for i in range(arrs.__len__() - 1):
-            print("{", end="")
+            print("{", end="", file=file)
             for j in range(arrs[i].__len__() - 1):
-                print("%d" % arrs[i][j], end=",")
-            print("%d" % arrs[i][arrs[i].__len__() - 1], end="},")
-        print("{", end="")
+                print("%d" % arrs[i][j], end=",", file=file)
+            print("%d" % arrs[i][arrs[i].__len__() - 1], end="},", file=file)
+        print("{", end="", file=file)
         for j in range(arrs[arrs.__len__() - 1].__len__() - 1):
-            print("%d" % arrs[arrs.__len__() - 1][j], end=",")
-        print("%d" % arrs[arrs.__len__() - 1][arrs[arrs.__len__() - 1].__len__() - 1], end="}};\n")
+            print("%d" % arrs[arrs.__len__() - 1][j], end=",", file=file)
+        print("%d" % arrs[arrs.__len__() - 1][arrs[arrs.__len__() - 1].__len__() - 1], end="}}"+endwith, file=file)
     elif v.ndim == 1:
-        print("static const ll " + name + "[" + str(v.shape[0]) + "] = {", end="")
+        print("static const ll " + name + "[" + str(v.shape[0]) + "] = {", end="", file=file)
         arrs = v.tolist()
         for i in range(arrs.__len__() - 1):
-            print("%d" % arrs[i], end=",")
-        print("%d" % arrs[arrs.__len__() - 1], end="};\n")
+            print("%d" % arrs[i], end=",", file=file)
+        print("%d" % arrs[arrs.__len__() - 1], end="};\n", file=file)
     elif v.ndim == 0:
-        print("static const ll " + name + "= " + str(v.tolist()) + ";")
+        print("static const ll " + name + "= " + str(v.tolist()) + ";", file=file)
 
 
 # Load quantized params
@@ -56,37 +68,43 @@ std = load_stats['std']
 # Convert matrices to C++ format
 # print("Copy and run below code to get model size:\n\n")
 # print("typedef long long ll;\n")
-print("")
-formatp(np.transpose(qW1), 'qW1_transp_l')
-formatp(qFC_Bias, 'qFC_Bias_l')
-formatp(np.transpose(qW2), 'qW2_transp_l')
-formatp(np.transpose(qU2), 'qU2_transp_l')
-formatp(np.transpose(qFC_Weight), 'qFC_Weight_l')
-formatp(np.transpose(qU1), 'qU1_transp_l')
-formatp(I*qB_g, 'qB_g_l')
-formatp(I*qB_h, 'qB_h_l')
-print("")
-formatp(mean, 'mean_l')
-formatp(std, 'stdev_l')
-print("")
-formatp(q, 'q_l')
-formatp(I, 'I_l')
-formatp(q*I, 'q_times_I_l')
+model_params = open('C++/model_params.h', 'w')
 
-formatp(I*np.ones(qU1.shape[0], dtype=int), 'I_l_vec')
+print("typedef long long ll;\n", file=model_params)
+formatp(np.transpose(qW1), 'qW1_transp_l', file=model_params)
+formatp(qFC_Bias, 'qFC_Bias_l', file=model_params)
+formatp(np.transpose(qW2), 'qW2_transp_l', file=model_params)
+formatp(np.transpose(qU2), 'qU2_transp_l', file=model_params)
+formatp(np.transpose(qFC_Weight), 'qFC_Weight_l', file=model_params)
+formatp(np.transpose(qU1), 'qU1_transp_l', file=model_params)
+formatp(I * qB_g, 'qB_g_l', file=model_params)
+formatp(I * qB_h, 'qB_h_l', file=model_params)
+print("", file=model_params)
+formatp(mean, 'mean_l', file=model_params)
+formatp(std, 'stdev_l', file=model_params)
+print("", file=model_params)
+formatp(q, 'q_l', file=model_params)
+formatp(I, 'I_l', file=model_params)
+formatp(q * I, 'q_times_I_l', file=model_params)
 
-print('\nstatic const int wRank = ' + str(qW2.shape[0]) + ";")
-print('static const int uRank = ' + str(qU2.shape[0]) + ";")
-print('static const int inputDims = ' + str(qW1.shape[0]) + ";")
-print('static const int hiddenDims = ' + str(qU1.shape[0]) + ";")
-print('static const int timeSteps = ' + str(num_timesteps) + ";")
-print('static const int numInstances = ' + str(num_instances) + ";")
-print('static const int numClasses = ' + str(num_classes) + ";")
+formatp(I * np.ones(qU1.shape[0], dtype=int), 'I_l_vec', file=model_params)
 
-print("\nint main(){\n"
-      "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) "
-      "+ sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) "
-      "+ sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) "
-      "+ sizeof(I_l_vec) + sizeof(q_times_I_l);\n"
-      "\tprintf(\"Model size: %d KB\\n\", size/1000);\n" \
-                                    "}")
+print('\nstatic const int wRank = ' + str(qW2.shape[0]) + ";", file=model_params)
+print('static const int uRank = ' + str(qU2.shape[0]) + ";", file=model_params)
+print('static const int inputDims = ' + str(qW1.shape[0]) + ";", file=model_params)
+print('static const int hiddenDims = ' + str(qU1.shape[0]) + ";", file=model_params)
+print('static const int timeSteps = ' + str(num_timesteps) + ";", file=model_params)
+print('static const int numInstances = ' + str(num_instances) + ";", file=model_params)
+print('static const int numClasses = ' + str(num_classes) + ";", file=model_params)
+
+test_data = open('C++/test_data.h', 'w')
+
+test_in = np.load(test_in_path)
+formatp(test_in.reshape(-1, test_in.shape[1]*test_in.shape[2], test_in.shape[3]), 'test_input', file=test_data)
+# print("\nint main(){\n"
+#       "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) "
+#       "+ sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) "
+#       "+ sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) "
+#       "+ sizeof(I_l_vec) + sizeof(q_times_I_l);\n"
+#       "\tprintf(\"Model size: %d KB\\n\", size/1000);\n" \
+#                                     "}")
