@@ -11,7 +11,7 @@ num_classes = 2
 def formatp(v, name):
     if v.ndim == 2:
         arrs = v.tolist()
-        print("const long long " + name + "[][" + str(v.shape[1]) + "] = {", end="")
+        print("static const ll " + name + "[][" + str(v.shape[1]) + "] = {", end="")
         for i in range(arrs.__len__() - 1):
             print("{", end="")
             for j in range(arrs[i].__len__() - 1):
@@ -22,13 +22,13 @@ def formatp(v, name):
             print("%d" % arrs[arrs.__len__() - 1][j], end=",")
         print("%d" % arrs[arrs.__len__() - 1][arrs[arrs.__len__() - 1].__len__() - 1], end="}};\n")
     elif v.ndim == 1:
-        print("const long long " + name + "[" + str(v.shape[0]) + "] = {", end="")
+        print("const ll " + name + "[" + str(v.shape[0]) + "] = {", end="")
         arrs = v.tolist()
         for i in range(arrs.__len__() - 1):
             print("%d" % arrs[i], end=",")
         print("%d" % arrs[arrs.__len__() - 1], end="};\n")
     elif v.ndim == 0:
-        print("const long long " + name + "= " + str(v.tolist()) + ";\n")
+        print("static const ll " + name + "= " + str(v.tolist()) + ";")
 
 
 # Load quantized params
@@ -55,31 +55,35 @@ std = load_stats['std']
 
 # Convert matrices to C++ format
 print("Copy and run below code to get model size:\n\n")
-print("#include <stdio.h>\n")
+print("typedef long long ll;\n")
 formatp(np.transpose(qW1), 'qW1_transp_l')
 formatp(qFC_Bias, 'qFC_Bias_l')
 formatp(np.transpose(qW2), 'qW2_transp_l')
 formatp(np.transpose(qU2), 'qU2_transp_l')
 formatp(qFC_Weight, 'qFC_Weight_l')
 formatp(np.transpose(qU1), 'qU1_transp_l')
-formatp(qB_g, 'qB_g_l')
-formatp(qB_h, 'qB_h_l')
-
-formatp(q, 'q_l')
-formatp(I, 'I_l')
-
+formatp(I*qB_g, 'qB_g_l')
+formatp(I*qB_h, 'qB_h_l')
+print("")
 formatp(mean, 'mean_l')
 formatp(std, 'stdev_l')
+print("")
+formatp(q, 'q_l')
+formatp(I, 'I_l')
+formatp(q*I, 'q_times_I_l')
 
-print('\nconst int wRank = ' + str(qW2.shape[0]) + ";")
-print('const int uRank = ' + str(qU2.shape[0]) + ";")
-print('const int inputDims = ' + str(qW1.shape[0]) + ";")
-print('const int hiddenDims = ' + str(qU1.shape[0]) + ";")
-print('const int timeSteps = ' + str(num_timesteps) + ";")
-print('const int numInstances = ' + str(num_instances) + ";")
-print('const int numClasses = ' + str(num_classes) + ";")
+print('\nstatic const int wRank = ' + str(qW2.shape[0]) + ";")
+print('static const int uRank = ' + str(qU2.shape[0]) + ";")
+print('static const int inputDims = ' + str(qW1.shape[0]) + ";")
+print('static const int hiddenDims = ' + str(qU1.shape[0]) + ";")
+print('static const int timeSteps = ' + str(num_timesteps) + ";")
+print('static const int numInstances = ' + str(num_instances) + ";")
+print('static const int numClasses = ' + str(num_classes) + ";")
 
 print("\nint main(){\n"
-      "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l);\n"
+      "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) "
+      "+ sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) "
+      "+ sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) "
+      "+ sizeof(I_l_vec) + sizeof(q_times_I_l);\n"
       "\tprintf(\"Model size: %d KB\\n\", size/1000);\n" \
                                     "}")
