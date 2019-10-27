@@ -1,0 +1,68 @@
+import os
+import sys
+import numpy as np
+import json, codecs
+
+def formatp(v, name):
+    if v.ndim == 2:
+        arrs = v.tolist()
+        print("long int " + name + "[][" + str(v.shape[1]) + "] = {", end="")
+        for i in range(arrs.__len__() - 1):
+            print("{", end="")
+            for j in range(arrs[i].__len__() - 1):
+                print("%d" % arrs[i][j], end=",")
+            print("%d" % arrs[i][arrs[i].__len__() - 1], end="},")
+        print("{", end="")
+        for j in range(arrs[arrs.__len__() - 1].__len__() - 1):
+            print("%d" % arrs[arrs.__len__() - 1][j], end=",")
+        print("%d" % arrs[arrs.__len__() - 1][arrs[arrs.__len__() - 1].__len__() - 1], end="}};\n")
+    elif v.ndim == 1:
+        print("long int " + name + "[" + str(v.shape[0]) + "] = {", end="")
+        arrs = v.tolist()
+        for i in range(arrs.__len__() - 1):
+            print("%d" % arrs[i], end=",")
+        print("%d" % arrs[arrs.__len__() - 1], end="};\n")
+    elif v.ndim == 0:
+        print("long int " + name + "= " + str(v.tolist()) + ";\n")
+
+I = np.array(pow(10,5))
+
+# Load quantized params
+modelloc = 'buildsys_model/model_O=2_H=32_k=6_gN=quantSigm_uN=quantTanh_ep=50_it=10_rnd=5_bs=64/Params'
+
+qW1 = np.load(modelloc + "/QuantizedFastModel/qW1.npy")
+qFC_Bias = np.load(modelloc + "/QuantizedFastModel/qFC_Bias.npy")
+qW2 = np.load(modelloc + "/QuantizedFastModel/qW2.npy")
+qU2 = np.load(modelloc + "/QuantizedFastModel/qU2.npy")
+qFC_Weight = np.load(modelloc + "/QuantizedFastModel/qFC_Weight.npy")
+qU1 = np.load(modelloc + "/QuantizedFastModel/qU1.npy")
+qB_g = np.transpose(np.load(modelloc + "/QuantizedFastModel/qB_g.npy"))
+qB_h = np.transpose(np.load(modelloc + "/QuantizedFastModel/qB_h.npy"))
+q = np.load(modelloc + "/QuantizedFastModel/paramScaleFactor.npy")
+
+# Get mean and std
+statsfile = 'buildsys_model/train_stats.json'
+load_stats = json.loads(codecs.open(statsfile, 'r', encoding='utf-8').read())
+# Convert values to numpy arrays
+load_stats.update((k, np.array(v)) for k, v in load_stats.items())
+
+mean = load_stats['mean']
+std = load_stats['std']
+
+formatp(np.transpose(qW1), 'qW1_transp_l')
+formatp(qFC_Bias, 'qFC_Bias_l')
+formatp(np.transpose(qW2), 'qW2_transp_l')
+formatp(np.transpose(qU2), 'qU2_transp_l')
+formatp(qFC_Weight, 'qFC_Weight_l')
+formatp(np.transpose(qU1), 'qU1_transp_l')
+formatp(qB_g, 'qB_g_l')
+formatp(qB_h, 'qB_h_l')
+
+formatp(q, 'q_l')
+formatp(I, 'I')
+
+formatp(mean, 'mean_l')
+formatp(std, 'stdev_l')
+
+
+
