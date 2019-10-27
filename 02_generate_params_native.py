@@ -36,8 +36,8 @@ qW2 = np.load(modelloc + "/QuantizedFastModel/qW2.npy")
 qU2 = np.load(modelloc + "/QuantizedFastModel/qU2.npy")
 qFC_Weight = np.load(modelloc + "/QuantizedFastModel/qFC_Weight.npy")
 qU1 = np.load(modelloc + "/QuantizedFastModel/qU1.npy")
-qB_g = np.transpose(np.load(modelloc + "/QuantizedFastModel/qB_g.npy"))
-qB_h = np.transpose(np.load(modelloc + "/QuantizedFastModel/qB_h.npy"))
+qB_g = np.load(modelloc + "/QuantizedFastModel/qB_g.npy").ravel()
+qB_h = np.load(modelloc + "/QuantizedFastModel/qB_h.npy").ravel()
 q = np.load(modelloc + "/QuantizedFastModel/paramScaleFactor.npy")
 
 # Get mean and std
