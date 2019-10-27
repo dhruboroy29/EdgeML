@@ -67,6 +67,9 @@ formatp(I, 'I_l')
 formatp(mean, 'mean_l')
 formatp(std, 'stdev_l')
 
+print('\nint wRank = ' + str(qW2.shape[0]))
+print('int uRank = ' + str(qU2.shape[0]))
+
 print("\nint main(){\n"
       "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l);\n"
       "\tprintf(\"Model size: %d KB\\n\", size/1000);\n" \
