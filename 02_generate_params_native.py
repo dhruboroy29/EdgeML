@@ -1,7 +1,7 @@
-import os
-import sys
+import codecs
+import json
+
 import numpy as np
-import json, codecs
 
 I = np.array(pow(10,5))
 num_instances = 8
