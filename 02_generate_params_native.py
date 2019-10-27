@@ -6,7 +6,7 @@ import json, codecs
 def formatp(v, name):
     if v.ndim == 2:
         arrs = v.tolist()
-        print("long int " + name + "[][" + str(v.shape[1]) + "] = {", end="")
+        print("const long long " + name + "[][" + str(v.shape[1]) + "] = {", end="")
         for i in range(arrs.__len__() - 1):
             print("{", end="")
             for j in range(arrs[i].__len__() - 1):
@@ -17,13 +17,13 @@ def formatp(v, name):
             print("%d" % arrs[arrs.__len__() - 1][j], end=",")
         print("%d" % arrs[arrs.__len__() - 1][arrs[arrs.__len__() - 1].__len__() - 1], end="}};\n")
     elif v.ndim == 1:
-        print("long int " + name + "[" + str(v.shape[0]) + "] = {", end="")
+        print("const long long " + name + "[" + str(v.shape[0]) + "] = {", end="")
         arrs = v.tolist()
         for i in range(arrs.__len__() - 1):
             print("%d" % arrs[i], end=",")
         print("%d" % arrs[arrs.__len__() - 1], end="};\n")
     elif v.ndim == 0:
-        print("long int " + name + "= " + str(v.tolist()) + ";\n")
+        print("const long long " + name + "= " + str(v.tolist()) + ";\n")
 
 I = np.array(pow(10,5))
 
@@ -49,6 +49,9 @@ load_stats.update((k, np.array(v)) for k, v in load_stats.items())
 mean = load_stats['mean']
 std = load_stats['std']
 
+# Convert matrices to C++ format
+print("Copy and run below code to get model size:\n\n")
+print("#include <stdio.h>\n")
 formatp(np.transpose(qW1), 'qW1_transp_l')
 formatp(qFC_Bias, 'qFC_Bias_l')
 formatp(np.transpose(qW2), 'qW2_transp_l')
@@ -59,10 +62,12 @@ formatp(qB_g, 'qB_g_l')
 formatp(qB_h, 'qB_h_l')
 
 formatp(q, 'q_l')
-formatp(I, 'I')
+formatp(I, 'I_l')
 
 formatp(mean, 'mean_l')
 formatp(std, 'stdev_l')
 
-
-
+print("\nint main(){\n"
+      "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l);\n"
+      "\tprintf(\"Model size: %d KB\\n\", size/1000);\n" \
+                                    "}")
