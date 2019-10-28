@@ -118,7 +118,7 @@ int main(){
 	{
 		uint test_input[timeSteps][inputDims] = {0};
 		util_slice3D((uint*) test_inputs, (uint*) test_input, d, timeSteps, inputDims);
-		util_printMatrix((uint*)slice, timeSteps, inputDims);
+		util_printMatrix((uint*) test_input, timeSteps, inputDims);
 
 		ll h[hiddenDims] = {0};
 	
