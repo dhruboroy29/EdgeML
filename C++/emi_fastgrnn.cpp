@@ -114,82 +114,88 @@ int main(){
 
 	//uint test_input2[][8] = {{2045,2034,2012,2030,2019,1965,2039,2023},{2014,2073,2015,2031,2054,2026,2028,2060},{2023,2020,2046,2020,2035,2037,2012,2029},{2050,2019,2055,2042,2019,2063,2020,2043},{2039,2043,2013,2059,2001,2020,2044,2034},{2029,2058,2002,2046,2040,2017,2051,2050},{2026,2070,2034,2020,2042,2019,2009,2042},{2019,2031,2054,2046,2040,2058,2033,2048},{2045,2027,2037,2070,2009,2076,2026,2026},{2051,2047,2005,2055,2009,2030,2043,2057},{2017,2059,2020,2049,2041,2052,2007,2049},{2021,2016,2028,2036,2015,2052,2007,2043}};
 
-	ll h[hiddenDims] = {0};
+	for(int d=0; d < numData; d ++)
+	{
+		uint test_input[timeSteps][inputDims] = {0};
+		util_slice3D((uint*) test_inputs, (uint*) test_input, d, timeSteps, inputDims);
+		util_printMatrix((uint*)slice, timeSteps, inputDims);
 
-	for(int t=0; t<timeSteps; t++){
-		//util_printVec(h, hiddenDims);
-		uint x_int[inputDims] = {0};
-		util_deepCopy((uint*)test_input, x_int, t, inputDims);
-
-		ll x[8] = {};
-
-		copyUIntVecToLL(x_int, x, inputDims);
-
-		//printf("Current input array in ll\n");
-		//util_printVec(x, inputDims);
-
-		stdScaleInput(x, inputDims, x);
-
-		//printf("Post-standardization input\n");
-		//util_printVec(x, inputDims);
-
-		// Precompute
-		ll pre[hiddenDims] = {0};
-		mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
-		mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, pre);
-
-		//util_printVec(pre, hiddenDims);
-
-		mulMatVec((ll*)qU1_transp_l, h, uRank, hiddenDims, out_uRank);
-		mulMatVec((ll*)qU2_transp_l, out_uRank, hiddenDims, uRank, out_hiddenDims);
-
-		addVecs(pre, out_hiddenDims, hiddenDims, pre);
-
-		//util_printVec(pre, hiddenDims);
-
-		divVecScal(pre, q_l, hiddenDims, pre);
-
-		//printf("Pre at t=%d:\n", t);
-		//util_printVec(pre, hiddenDims);
-
-		// Create h_, z
-		ll h_[hiddenDims] = {0};
-		ll z[hiddenDims] = {0};
-
-		addVecs(pre, (ll*)qB_h_l, hiddenDims, h_);
-		addVecs(pre, (ll*)qB_g_l, hiddenDims, z);
-
-		UPDATE_NL(h_, hiddenDims, q_times_I_l, h_);
-		divVecScal(h_, q_l, hiddenDims, h_);
-
-		GATE_NL(z, hiddenDims, q_times_I_l, z);
-		divVecScal(z, q_l, hiddenDims, z);
-
-		//printf("h_ at t=%d:\n", t);
-		//util_printVec(h_, hiddenDims);
-
-		//printf("z at t=%d:\n", t);
-		//util_printVec(z, hiddenDims);
-
-		// Create new h
-		mulVecs(z, h, hiddenDims, h);
-
-		subVecs((ll*)I_l_vec, z, hiddenDims, out_hiddenDims);
-		mulVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
-		mulVecs(out_hiddenDims, h_, hiddenDims, out_hiddenDims);
-		divVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
-
-		addVecs(h, out_hiddenDims, hiddenDims, h);
-		divVecScal(h, I_l, hiddenDims, h);
-
-		//printf("h at t=%d:\n", t);
-		//util_printVec(h, hiddenDims);
-	}
-
-	// Classify
-	mulMatVec((ll*)qFC_Weight_l, h, numClasses, hiddenDims, out_numClasses);
-	addVecs(out_numClasses, (ll*)qFC_Bias_l, numClasses, out_numClasses);
-
-	printf("Classification output:\n");
-	util_printVec(out_numClasses, numClasses);
+		ll h[hiddenDims] = {0};
+	
+		for(int t=0; t<timeSteps; t++){
+			//util_printVec(h, hiddenDims);
+			uint x_int[inputDims] = {0};
+			util_slice2D((uint*)test_input, x_int, t, inputDims);
+	
+			ll x[8] = {};
+	
+			copyUIntVecToLL(x_int, x, inputDims);
+	
+			//printf("Current input array in ll\n");
+			//util_printVec(x, inputDims);
+	
+			stdScaleInput(x, inputDims, x);
+	
+			//printf("Post-standardization input\n");
+			//util_printVec(x, inputDims);
+	
+			// Precompute
+			ll pre[hiddenDims] = {0};
+			mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
+			mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, pre);
+	
+			//util_printVec(pre, hiddenDims);
+	
+			mulMatVec((ll*)qU1_transp_l, h, uRank, hiddenDims, out_uRank);
+			mulMatVec((ll*)qU2_transp_l, out_uRank, hiddenDims, uRank, out_hiddenDims);
+	
+			addVecs(pre, out_hiddenDims, hiddenDims, pre);
+	
+			//util_printVec(pre, hiddenDims);
+	
+			divVecScal(pre, q_l, hiddenDims, pre);
+	
+			//printf("Pre at t=%d:\n", t);
+			//util_printVec(pre, hiddenDims);
+	
+			// Create h_, z
+			ll h_[hiddenDims] = {0};
+			ll z[hiddenDims] = {0};
+	
+			addVecs(pre, (ll*)qB_h_l, hiddenDims, h_);
+			addVecs(pre, (ll*)qB_g_l, hiddenDims, z);
+	
+			UPDATE_NL(h_, hiddenDims, q_times_I_l, h_);
+			divVecScal(h_, q_l, hiddenDims, h_);
+	
+			GATE_NL(z, hiddenDims, q_times_I_l, z);
+			divVecScal(z, q_l, hiddenDims, z);
+	
+			//printf("h_ at t=%d:\n", t);
+			//util_printVec(h_, hiddenDims);
+	
+			//printf("z at t=%d:\n", t);
+			//util_printVec(z, hiddenDims);
+	
+			// Create new h
+			mulVecs(z, h, hiddenDims, h);
+	
+			subVecs((ll*)I_l_vec, z, hiddenDims, out_hiddenDims);
+			mulVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
+			mulVecs(out_hiddenDims, h_, hiddenDims, out_hiddenDims);
+			divVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
+	
+			addVecs(h, out_hiddenDims, hiddenDims, h);
+			divVecScal(h, I_l, hiddenDims, h);
+	
+			//printf("h at t=%d:\n", t);
+			//util_printVec(h, hiddenDims);
+		}
+	
+		// Classify
+		mulMatVec((ll*)qFC_Weight_l, h, numClasses, hiddenDims, out_numClasses);
+		addVecs(out_numClasses, (ll*)qFC_Bias_l, numClasses, out_numClasses);
+	
+		printf("Classification output:\n");
+		util_printVec(out_numClasses, numClasses);}
 }
