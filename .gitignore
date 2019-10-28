@@ -299,3 +299,5 @@ slurm*.out
 *spl.sh
 *spl.out
 3_SUBMIT*.sh
+C++/emi_fastgrnn
+C++/*.out
