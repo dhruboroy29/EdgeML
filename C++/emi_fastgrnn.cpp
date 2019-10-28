@@ -23,8 +23,6 @@ ll out_numClasses[numClasses] = {0};
 // Copy uint into ll array
 void copyUIntVecToLL(uint* invec, ll* outvec, int vec_len)
 {
-	//for(int i=0; i < vec_len; i++)
-	//	*(outvec + i) = (ll)invec[i];
 	copy(invec,invec+vec_len, outvec);
 }
 
