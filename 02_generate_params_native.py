@@ -100,10 +100,11 @@ print('static const int numClasses = ' + str(num_classes) + ";", file=model_para
 test_data = open('C++/test_data.h', 'w')
 
 test_in = np.load(test_in_path)
-formatp(test_in.reshape(-1, test_in.shape[2], test_in.shape[3]), 'test_inputs', file=test_data)
-print("static const int numData = " + str(test_in.shape[0]) + ";\n")
+test_in = test_in.reshape(-1, test_in.shape[2], test_in.shape[3])
+formatp(test_in, 'test_inputs', file=test_data)
+print("static const int numData = " + str(test_in.shape[0]) + ";\n", file=test_data)
 
-np.save('C++/test_data.npy', test_in.reshape(-1, test_in.shape[2], test_in.shape[3]))
+np.save('C++/test_data.npy', test_in)
 
 # print("\nint main(){\n"
 #       "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) "
