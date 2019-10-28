@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include "model_params.h"
 #include "test_data.h"
@@ -22,8 +23,9 @@ ll out_numClasses[numClasses] = {0};
 // Copy uint into ll array
 void copyUIntVecToLL(uint* invec, ll* outvec, int vec_len)
 {
-	for(int i=0; i < vec_len; i++)
-		*(outvec + i) = (ll)invec[i];
+	//for(int i=0; i < vec_len; i++)
+	//	*(outvec + i) = (ll)invec[i];
+	copy(invec,invec+vec_len, outvec);
 }
 
 //Vector-scalar multiplication
