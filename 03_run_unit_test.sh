@@ -7,7 +7,7 @@ python3 "C++/emi_fastgrnn.py"
 # Run C++ pipeline
 echo "Done! Running C++ inference pipeline on test data..."
 cd "C++"
-g++ "emi_fastgrnn.cpp"
+g++ -O3 "emi_fastgrnn.cpp"
 ./a.out
 
 # Show diffs of outputs
