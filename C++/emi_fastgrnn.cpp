@@ -109,7 +109,7 @@ int main(){
 	for(int t=0; t<timeSteps; t++){
 		//util_printVec(h, hiddenDims);
 		uint x_int[inputDims] = {0};
-		util_deepCopy((uint*)test_input2, x_int, t, inputDims);
+		util_deepCopy((uint*)test_input, x_int, t, inputDims);
 
 		ll x[8] = {};
 

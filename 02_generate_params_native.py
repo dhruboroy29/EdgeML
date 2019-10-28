@@ -100,7 +100,9 @@ print('static const int numClasses = ' + str(num_classes) + ";", file=model_para
 test_data = open('C++/test_data.h', 'w')
 
 test_in = np.load(test_in_path)
-formatp(test_in.reshape(-1, test_in.shape[1]*test_in.shape[2], test_in.shape[3]), 'test_input', file=test_data)
+formatp(test_in.reshape(-1, test_in.shape[2], test_in.shape[3]), 'test_input', file=test_data)
+np.save('C++/test_data.npy', test_in.reshape(-1, test_in.shape[2], test_in.shape[3]))
+
 # print("\nint main(){\n"
 #       "\tint size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) "
 #       "+ sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) "
