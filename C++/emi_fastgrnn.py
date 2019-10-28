@@ -81,9 +81,7 @@ def predict_quant(points, I):
 
 # Run test
 I = 5
-softmax=[]
 scale = pow(10, I)
-
-instance_preds = predict_quant(test_data, scale)
-softmax.append(instance_preds)
+instance_preds = predict_quant(test_data, scale).reshape(-1, 2)
+np.savetxt('C++/out_py.csv', instance_preds, fmt='%i', delimiter=',')
 
