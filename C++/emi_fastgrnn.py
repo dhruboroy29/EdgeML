@@ -48,8 +48,8 @@ def nonlin(code, x, scale):
         return quantSigm(x, scale)
 
 NUM_HIDDEN = 32
-UPDATE_NL = quantTanh
-GATE_NL = quantSigm
+UPDATE_NL = "quantTanh"
+GATE_NL = "quantSigm"
 
 fpt = int
 
@@ -76,7 +76,7 @@ def predict_quant(points, I):
             h = np.array((np.multiply(z, h) + np.array(np.multiply(fpt(I * zeta) * (I - z) + fpt(I * nu) * I, h_) / I,
                                                        dtype=fpt)) / I, dtype=fpt)
 
-        preds.append(np.argmax(np.matmul(np.transpose(h), qFC_Weight) + qFC_Bias))
+        preds.append(np.matmul(np.transpose(h), qFC_Weight) + qFC_Bias)
     return np.array(preds)
 
 # Run test
