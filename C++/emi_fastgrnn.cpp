@@ -201,9 +201,7 @@ int main(){
 			mulVecs(z, h, hiddenDims, h);
 	
 			subVecs((ll*)I_l_vec, z, hiddenDims, out_hiddenDims);
-			mulVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
 			mulVecs(out_hiddenDims, h_, hiddenDims, out_hiddenDims);
-			divVecScal(out_hiddenDims, I_l, hiddenDims, out_hiddenDims);
 	
 			addVecs(h, out_hiddenDims, hiddenDims, h);
 			divVecScal(h, I_l, hiddenDims, h);
