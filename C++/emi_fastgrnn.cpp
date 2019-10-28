@@ -1,7 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
 #include "model_params.h"
 #include "test_data.h"
+
+using namespace std;
 
 #define min(a,b) ((b)>(a))?a:b
 #define max(a,b) ((a)>(b))?a:b
@@ -106,9 +111,24 @@ void util_slice3D(uint* src, uint*dst, int row_index, int col_len, int vec_len){
 			*(dst+k) = *(slice_beg + k);
 }
 
+// String builder util
+string strBuild(ll i, char delim)
+{
+    string s;
+    stringstream out;
+    out << i;
+    out << delim;
+    s = out.str();
+    return s;
+}
+
 int main(){
 	int size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) + sizeof(I_l_vec) + sizeof(q_times_I_l);
 	printf("Model size: %d KB\n\n", size/1000);
+
+	// Initialize output file
+	ofstream outfile;
+	outfile.open("out_c++.csv");
 
 	//uint test_input[][8] = {{2032,2041,2019,2014,2034,2021,2038,2053},{2017,2051,2017,2041,2039,2050,2013,2056},{2016,2035,2021,2040,2008,2059,2026,2046},{2049,2050,2026,2067,2025,2041,2039,2025},{2025,2056,1994,2039,2015,2037,2029,2049},{2018,2060,2014,2046,2036,2029,2018,2045},{2020,2031,2037,2023,2001,2056,2002,2029},{2031,2028,2041,2059,2024,2060,2052,2036},{2045,2034,2012,2030,2019,1965,2039,2023},{2014,2073,2015,2031,2054,2026,2028,2060},{2023,2020,2046,2020,2035,2037,2012,2029},{2050,2019,2055,2042,2019,2063,2020,2043}};
 
@@ -118,7 +138,7 @@ int main(){
 	{
 		uint test_input[timeSteps][inputDims] = {0};
 		util_slice3D((uint*) test_inputs, (uint*) test_input, d, timeSteps, inputDims);
-		util_printMatrix((uint*) test_input, timeSteps, inputDims);
+		//util_printMatrix((uint*) test_input, timeSteps, inputDims);
 
 		ll h[hiddenDims] = {0};
 	
@@ -196,6 +216,16 @@ int main(){
 		mulMatVec((ll*)qFC_Weight_l, h, numClasses, hiddenDims, out_numClasses);
 		addVecs(out_numClasses, (ll*)qFC_Bias_l, numClasses, out_numClasses);
 	
-		printf("Classification output:\n");
-		util_printVec(out_numClasses, numClasses);}
+		//printf("Classification output:\n");
+		//util_printVec(out_numClasses, numClasses);
+
+		//Print decision to csv file
+		string outstr;
+		for(int c = 0; c < numClasses -1 ; c++)
+			outstr += strBuild(out_numClasses[c], ',');
+		outstr += strBuild(out_numClasses[numClasses -1], '\n');
+		cout << outstr;
+		outfile << outstr;
+	}
+	outfile.close();
 }
