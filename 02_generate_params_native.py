@@ -102,7 +102,7 @@ test_data = open('C++/test_data.h', 'w')
 test_in = np.load(test_in_path)
 test_in = test_in.reshape(-1, test_in.shape[2], test_in.shape[3])
 formatp(test_in, 'test_inputs', file=test_data)
-print("static const int numData = " + str(test_in.shape[0]) + ";\n", file=test_data)
+print("static const int numData = " + str(test_in.shape[0]) + ";", file=test_data)
 
 np.save('C++/test_data.npy', test_in)
 
