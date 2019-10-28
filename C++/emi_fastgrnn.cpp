@@ -78,22 +78,32 @@ void quantSigm(ll* vec, int vec_len, ll scale, ll* out_vec){
 		*(out_vec+i) = max(min((*(vec+i)+scale)/2, scale),0);
 }
 
-// Vector print utility
+// Print utils
 void util_printVec(ll* vec, int vec_len){
 	for(int i=0; i < vec_len; i++)
 		printf("%lli\t", vec[i]);
 	printf("\n\n");
 }
 
-// Vector deep copy
-void util_deepCopy(uint* src, uint*dst, int row_index, int vec_len){
+void util_printMatrix(uint* mat, int row_len, int col_len){
+	for(int i=0; i < row_len; i++){
+		for(int j=0; j < col_len; j++)
+			printf("%u\t", *(mat+i*col_len+j));
+		printf("\n");
+	}
+	printf("\n\n");
+}
+
+// Matrix slice utils
+void util_slice2D(uint* src, uint*dst, int row_index, int vec_len){
 	for(int j=0; j < vec_len; j++)
 		*(dst+j) = *((src+row_index*vec_len)+j);
 }
 
-void util_deepCopy(ll* src, ll*dst, int row_index, int vec_len){
-	for(int j=0; j < vec_len; j++)
-		*(dst+j) = *((src+row_index*vec_len)+j);
+void util_slice3D(uint* src, uint*dst, int row_index, int col_len, int vec_len){
+	uint *slice_beg = (src + row_index * col_len * vec_len);
+	for(int k=0; k < col_len * vec_len; k++)
+			*(dst+k) = *(slice_beg + k);
 }
 
 int main(){
