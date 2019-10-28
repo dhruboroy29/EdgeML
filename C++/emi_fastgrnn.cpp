@@ -224,7 +224,7 @@ int main(){
 		for(int c = 0; c < numClasses -1 ; c++)
 			outstr += strBuild(out_numClasses[c], ',');
 		outstr += strBuild(out_numClasses[numClasses -1], '\n');
-		cout << outstr;
+		//cout << outstr;
 		outfile << outstr;
 	}
 	outfile.close();
