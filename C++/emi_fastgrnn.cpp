@@ -1,3 +1,12 @@
+#ifdef MOTE_PROFILE
+#define MOTE
+#define TIME
+#endif
+
+#ifdef TIME
+#undef DBG
+#endif
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -13,10 +22,6 @@
 #include "test_data.h"
 
 using namespace std;
-
-#ifdef TIME
-	#undef DBG
-#endif
 
 #define min(a,b) ((b)>(a))?a:b
 #define max(a,b) ((a)>(b))?a:b
