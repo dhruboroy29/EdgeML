@@ -1,9 +1,6 @@
 #ifdef MOTE_PROFILE
 #define MOTE
-#define TIME
-#endif
-
-#ifdef TIME
+#include <tinyhal.h>
 #undef DBG
 #endif
 
@@ -13,9 +10,6 @@
 #include <algorithm>
 #ifndef MOTE
 #include <fstream>
-#endif
-#ifdef TIME
-#include <ctime>
 #endif
 
 #include "model_params.h"
@@ -143,6 +137,10 @@ void run_test(){
 #ifdef DBG
 	cout << "Model size: " << size/1000 << " KB" << endl << endl;
 #endif
+#ifdef MOTE_PROFILE
+	CPU_GPIO_EnableOutputPin(0, false);
+	CPU_GPIO_EnableOutputPin(1, false);
+#endif
 #ifndef MOTE
 	// Initialize output file
 	ofstream outfile;
@@ -153,6 +151,14 @@ void run_test(){
 		uint test_input[timeSteps][inputDims] = {0};
 		util_slice3D((uint*) test_inputs, (uint*) test_input, d, timeSteps, inputDims);
 
+#ifdef MOTE_PROFILE
+		// Profile latency per bag (second in V1)
+		if(d%numInstances==0)
+			CPU_GPIO_SetPinState(1, true);
+		else if(d%numInstances==numInstances-1)
+			CPU_GPIO_SetPinState(1, false);
+#endif		
+
 #ifdef DBG
 		util_printMatrix((uint*) test_input, timeSteps, inputDims);
 #endif
@@ -160,8 +166,10 @@ void run_test(){
 		ll h[hiddenDims] = {0};
 	
 		for(int t=0; t<timeSteps; t++){
-#ifdef TIME			
-			clock_t startTime = clock(); //Start timer
+#ifdef MOTE_PROFILE
+			// Profile latency per timestep			
+			//hal_printf("b");
+			CPU_GPIO_SetPinState(0, true);
 #endif
 			uint x_int[inputDims] = {0};
 			util_slice2D((uint*)test_input, x_int, t, inputDims);
@@ -222,9 +230,9 @@ void run_test(){
 	
 			addVecs(h, out_hiddenDims, hiddenDims, h);
 			divVecScal(h, I_l, hiddenDims, h);
-#ifdef TIME
-			double msPassed = (clock() - startTime) * 1e3 / (double) CLOCKS_PER_SEC;
-			cout << "Loop running time: " << msPassed << " ms" << endl;
+#ifdef MOTE_PROFILE
+			//hal_printf("e");
+			CPU_GPIO_SetPinState(0, false);
 #endif
 #ifdef DBG
 			cout << "h at t=" << t << endl;
@@ -250,9 +258,11 @@ void run_test(){
 	}
 #ifndef MOTE
 	outfile.close();
+#else
+	hal_printf("Test complete.");
 #endif
 }
 
-int main(){
+/*int main(){
 	run_test();
-}
+}*/

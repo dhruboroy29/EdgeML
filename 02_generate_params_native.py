@@ -14,7 +14,7 @@ test_in_path = "/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning
 
 def formatp(v, name, headless=False, endwith=";\n", file=sys.stdout):
     if v.ndim == 3:
-        print("uint " + name + "[][" + str(v.shape[1]) + "][" + str(v.shape[2]) + "] = {", end="", file=file)
+        print("static const uint " + name + "[][" + str(v.shape[1]) + "][" + str(v.shape[2]) + "] = {", end="", file=file)
         for i in range(v.__len__() - 1):
             formatp(v[i], 'xyz', headless=True, endwith=",", file=file)
         formatp(v[v.__len__() - 1], 'xyz', headless=True, endwith="};\n", file=file)
@@ -98,11 +98,16 @@ print('static const int numInstances = ' + str(num_instances) + ";", file=model_
 print('static const int numClasses = ' + str(num_classes) + ";", file=model_params)
 
 test_data = open('C++/test_data.h', 'w')
-
+print("#ifndef MOTE", file=test_data)
 test_in = np.load(test_in_path)
 test_in = test_in.reshape(-1, test_in.shape[2], test_in.shape[3])
 formatp(test_in, 'test_inputs', file=test_data)
 print("static const int numData = " + str(test_in.shape[0]) + ";", file=test_data)
+print("#else", file=test_data)
+test_in_mote = test_in[0:30]
+formatp(test_in_mote, 'test_inputs', file=test_data)
+print("static const int numData = " + str(test_in_mote.shape[0]) + ";", file=test_data)
+print("#endif", file=test_data)
 
 np.save('C++/test_data.npy', test_in)
 
