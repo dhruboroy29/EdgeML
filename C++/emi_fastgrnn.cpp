@@ -30,7 +30,7 @@ ll out_hiddenDims[hiddenDims] = {0};
 ll out_numClasses[numClasses] = {0};
 
 // Copy uint into ll array
-void copyUIntVecToLL(uint* invec, ll* outvec, int vec_len)
+inline void copyUIntVecToLL(uint* invec, ll* outvec, int vec_len)
 {
 	copy(invec,invec+vec_len, outvec);
 }
@@ -81,13 +81,13 @@ void stdScaleInput(ll* in_vec, int vec_len, ll* out_vec){
 }
 
 // quantTanh
-void quantTanh(ll* vec, int vec_len, ll scale, ll* out_vec){
+inline void quantTanh(ll* vec, int vec_len, ll scale, ll* out_vec){
 	for(int i=0; i<vec_len; i++)
 		*(out_vec+i) = max(-scale, min(scale, *(vec+i)));
 }
 
 // quantSigm
-void quantSigm(ll* vec, int vec_len, ll scale, ll* out_vec){
+inline void quantSigm(ll* vec, int vec_len, ll scale, ll* out_vec){
 	for(int i=0; i<vec_len; i++)
 		*(out_vec+i) = max(min((*(vec+i)+scale)/2, scale),0);
 }
