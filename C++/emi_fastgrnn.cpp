@@ -132,7 +132,7 @@ string strBuild(ll i, char delim)
     return s;
 }
 #endif
-int main(){
+void run_test(){
 	int size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) + sizeof(I_l_vec) + sizeof(q_times_I_l);
 	
 #ifdef DBG
@@ -246,4 +246,8 @@ int main(){
 #ifndef MOTE
 	outfile.close();
 #endif
+}
+
+int main(){
+	run_test();
 }
