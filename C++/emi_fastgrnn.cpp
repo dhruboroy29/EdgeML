@@ -163,21 +163,19 @@ int main(){
 			ll x[8] = {};
 	
 			copyUIntVecToLL(x_int, x, inputDims);
-	
-			//cout << "Current input array in ll" << endl;
-			//util_printVec(x, inputDims);
-	
+#ifdef DBG
+			cout << "Current input array in ll" << endl;
+			util_printVec(x, inputDims);
+#endif	
 			stdScaleInput(x, inputDims, x);
-	
-			//cout << "Post-standardization input" << endl;
-			//util_printVec(x, inputDims);
-	
+#ifdef DBG	
+			cout << "Post-standardization input" << endl;
+			util_printVec(x, inputDims);
+#endif	
 			// Precompute
 			ll pre[hiddenDims] = {0};
 			mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
 			mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, pre);
-	
-			//util_printVec(pre, hiddenDims);
 	
 			mulMatVec((ll*)qU1_transp_l, h, uRank, hiddenDims, out_uRank);
 			mulMatVec((ll*)qU2_transp_l, out_uRank, hiddenDims, uRank, out_hiddenDims);
