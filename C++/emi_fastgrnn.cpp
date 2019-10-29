@@ -93,6 +93,7 @@ inline void quantSigm(ll* vec, int vec_len, ll scale, ll* out_vec){
 }
 
 // Print utils
+#ifdef DBG
 void util_printVec(ll* vec, int vec_len){
 	for(int i=0; i < vec_len; i++)
 		cout << vec[i] << '\t';
@@ -107,7 +108,7 @@ void util_printMatrix(uint* mat, int row_len, int col_len){
 	}
 	cout << "\n\n";
 }
-
+#endif
 // Matrix slice utils
 void util_slice2D(uint* src, uint*dst, int row_index, int vec_len){
 	for(int j=0; j < vec_len; j++)
