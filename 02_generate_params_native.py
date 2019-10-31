@@ -9,6 +9,9 @@ num_instances = 8
 num_timesteps = 12
 num_classes = 2
 
+update_nl = "quantTanh"
+gate_nl = "quantSigm"
+
 test_in_path = "/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/" \
                 "Data/Austere/BuildSys_Demo/Windowed/winlen_256_stride_128/12_8/x_test_unnorm.npy"
 
@@ -96,6 +99,8 @@ print('static const int hiddenDims = ' + str(qU1.shape[0]) + ";", file=model_par
 print('static const int timeSteps = ' + str(num_timesteps) + ";", file=model_params)
 print('static const int numInstances = ' + str(num_instances) + ";", file=model_params)
 print('static const int numClasses = ' + str(num_classes) + ";", file=model_params)
+print('\n#define UPDATE_NL', update_nl)
+print('#define GATE_NL', gate_nl)
 
 test_data = open('C++/test_data.h', 'w')
 print("#ifndef MOTE", file=test_data)
