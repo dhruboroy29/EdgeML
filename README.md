@@ -7,6 +7,14 @@ https://osu.box.com/s/vonqlbglm6gdtv0yosxnnp41o73m4dvk
 
 `python3 01_quantize_emi_fastgrnn_disp_det.py -O 2 -gN quantSigm -uN quantTanh -bs 64 -H 32 -Dat /path/to/windowed/data/winlen_256_stride_128/12_8 -rnd 5 -it 10 -ep 50 -ots 256 -k 6`
 
+**2. Generate model parameters in C++**
+Once the best scale has been selected, modify lines 7-16, 50 of `02_generate_params_native.py` and run it:
+`python3 02_generate_params_native.py`
+
+**3. Unit-test C++ implementation with Python pipeline on test data**
+Modify lines 7-14 of `C++/emi_fastgrnn.py` and run unit test:
+`./03_run_unit_test.sh`
+
 
 ## Edge Machine Learning
 
