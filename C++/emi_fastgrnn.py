@@ -4,10 +4,14 @@ import sys
 
 import numpy as np
 
-I = np.array(pow(10,5))
+I = 5
 num_instances = 8
 num_timesteps = 12
 num_classes = 2
+
+NUM_HIDDEN = 32
+UPDATE_NL = "quantTanh"
+GATE_NL = "quantSigm"
 
 test_data = np.load('C++/test_data.npy')
 
@@ -47,10 +51,6 @@ def nonlin(code, x, scale):
     elif (code == "quantSigm"):
         return quantSigm(x, scale)
 
-NUM_HIDDEN = 32
-UPDATE_NL = "quantTanh"
-GATE_NL = "quantSigm"
-
 fpt = int
 
 def predict_quant(points, I):
@@ -80,7 +80,6 @@ def predict_quant(points, I):
     return np.array(preds)
 
 # Run test
-I = 5
 scale = pow(10, I)
 instance_preds = predict_quant(test_data, scale).reshape(-1, 2)
 np.savetxt('C++/out_py.csv', instance_preds, fmt='%i', delimiter=',')
