@@ -99,8 +99,8 @@ print('static const int hiddenDims = ' + str(qU1.shape[0]) + ";", file=model_par
 print('static const int timeSteps = ' + str(num_timesteps) + ";", file=model_params)
 print('static const int numInstances = ' + str(num_instances) + ";", file=model_params)
 print('static const int numClasses = ' + str(num_classes) + ";", file=model_params)
-print('\n#define UPDATE_NL', update_nl)
-print('#define GATE_NL', gate_nl)
+print('\n#define UPDATE_NL', update_nl, file=model_params)
+print('#define GATE_NL', gate_nl, file=model_params)
 
 test_data = open('C++/test_data.h', 'w')
 print("#ifndef MOTE", file=test_data)
