@@ -146,95 +146,95 @@ string strBuild(ll i, char delim)
 #endif
 
 inline int emi_rnn(uint* test_input){	
-	ll h[hiddenDims] = {0};
-	ll out_wRank[wRank] = {0};
-	ll out_uRank[uRank] = {0};
-	ll out_hiddenDims[hiddenDims] = {0};
-	ll out_numClasses[numClasses] = {0};
-	for(int t=0; t<timeSteps; t++){
+	ll h[hiddenDims_l] = {0};
+	ll out_wRank_l[wRank_l] = {0};
+	ll out_uRank_l[uRank_l] = {0};
+	ll out_hiddenDims_l[hiddenDims_l] = {0};
+	ll out_numClasses_l[numClasses_l] = {0};
+	for(int t=0; t<timeSteps_l; t++){
 #ifdef MOTE_PROFILE
 		// Profile latency per timestep			
 		//hal_printf("b");
 		CPU_GPIO_SetPinState(0, true);
 #endif
-		uint x_int[inputDims] = {0};
-		util_slice2D(test_input, x_int, t, inputDims);
+		uint x_int[inputDims_l] = {0};
+		util_slice2D(test_input, x_int, t, inputDims_l);
 
-		ll x[inputDims] = {};
+		ll x[inputDims_l] = {};
 
-		copyUIntVecToLL(x_int, x, inputDims);
+		copyUIntVecToLL(x_int, x, inputDims_l);
 #ifdef DBG
 		cout << "Current input array in ll" << endl;
-		util_printVec(x, inputDims);
+		util_printVec(x, inputDims_l);
 #endif	
-		stdScaleInput(x, inputDims, x);
+		stdScaleInput(x, inputDims_l, x);
 #ifdef DBG	
 		cout << "Post-standardization input" << endl;
-		util_printVec(x, inputDims);
+		util_printVec(x, inputDims_l);
 #endif	
 		// Precompute
-		ll pre[hiddenDims] = {0};
-		mulMatVec((ll*)qW1_transp_l, x, wRank, inputDims, out_wRank);
-		mulMatVec((ll*)qW2_transp_l, out_wRank, hiddenDims, wRank, pre);
+		ll pre[hiddenDims_l] = {0};
+		mulMatVec((ll*)qW1_transp_l, x, wRank_l, inputDims_l, out_wRank_l);
+		mulMatVec((ll*)qW2_transp_l, out_wRank_l, hiddenDims_l, wRank_l, pre);
 
-		mulMatVec((ll*)qU1_transp_l, h, uRank, hiddenDims, out_uRank);
-		mulMatVec((ll*)qU2_transp_l, out_uRank, hiddenDims, uRank, out_hiddenDims);
+		mulMatVec((ll*)qU1_transp_l, h, uRank_l, hiddenDims_l, out_uRank_l);
+		mulMatVec((ll*)qU2_transp_l, out_uRank_l, hiddenDims_l, uRank_l, out_hiddenDims_l);
 
-		addVecs(pre, out_hiddenDims, hiddenDims, pre);
+		addVecs(pre, out_hiddenDims_l, hiddenDims_l, pre);
 
-		divVecScal(pre, q_l, hiddenDims, pre);
+		divVecScal(pre, q_l, hiddenDims_l, pre);
 
 #ifdef DBG
 		cout << "Pre at t=" << t << endl;
-		util_printVec(pre, hiddenDims);
+		util_printVec(pre, hiddenDims_l);
 #endif
 
 		// Create h_, z
-		ll h_[hiddenDims] = {0};
-		ll z[hiddenDims] = {0};
+		ll h_[hiddenDims_l] = {0};
+		ll z[hiddenDims_l] = {0};
 
-		addVecs(pre, (ll*)qB_h_l, hiddenDims, h_);
-		addVecs(pre, (ll*)qB_g_l, hiddenDims, z);
+		addVecs(pre, (ll*)qB_h_l, hiddenDims_l, h_);
+		addVecs(pre, (ll*)qB_g_l, hiddenDims_l, z);
 
-		UPDATE_NL(h_, hiddenDims, q_times_I_l, h_);
-		divVecScal(h_, q_l, hiddenDims, h_);
+		UPDATE_NL(h_, hiddenDims_l, q_times_I_l, h_);
+		divVecScal(h_, q_l, hiddenDims_l, h_);
 
-		GATE_NL(z, hiddenDims, q_times_I_l, z);
-		divVecScal(z, q_l, hiddenDims, z);
+		GATE_NL(z, hiddenDims_l, q_times_I_l, z);
+		divVecScal(z, q_l, hiddenDims_l, z);
 #ifdef DBG
 		cout << "h_ at t=" << t << endl;
-		util_printVec(h_, hiddenDims);
+		util_printVec(h_, hiddenDims_l);
 
 		cout << "z at t=" << t << endl;
-		util_printVec(z, hiddenDims);
+		util_printVec(z, hiddenDims_l);
 #endif
 		// Create new h
-		mulVecs(z, h, hiddenDims, h);
+		mulVecs(z, h, hiddenDims_l, h);
 
-		subVecs((ll*)I_l_vec, z, hiddenDims, out_hiddenDims);
-		mulVecs(out_hiddenDims, h_, hiddenDims, out_hiddenDims);
+		subVecs((ll*)I_l_vec, z, hiddenDims_l, out_hiddenDims_l);
+		mulVecs(out_hiddenDims_l, h_, hiddenDims_l, out_hiddenDims_l);
 
-		addVecs(h, out_hiddenDims, hiddenDims, h);
-		divVecScal(h, I_l, hiddenDims, h);
+		addVecs(h, out_hiddenDims_l, hiddenDims_l, h);
+		divVecScal(h, I_l, hiddenDims_l, h);
 #ifdef MOTE_PROFILE
 		//hal_printf("e");
 		CPU_GPIO_SetPinState(0, false);
 #endif
 #ifdef DBG
 		cout << "h at t=" << t << endl;
-		util_printVec(h, hiddenDims);
+		util_printVec(h, hiddenDims_l);
 #endif
 	}
 
 	// Classify
-	mulMatVec((ll*)qFC_Weight_l, h, numClasses, hiddenDims, out_numClasses);
-	addVecs(out_numClasses, (ll*)qFC_Bias_l, numClasses, out_numClasses);
+	mulMatVec((ll*)qFC_Weight_l, h, numClasses_l, hiddenDims_l, out_numClasses_l);
+	addVecs(out_numClasses_l, (ll*)qFC_Bias_l, numClasses_l, out_numClasses_l);
 #ifdef DBG
 	cout << "Classification output:" << endl;
-	util_printVec(out_numClasses, numClasses);
+	util_printVec(out_numClasses_l, numClasses_l);
 #endif
 #ifdef MOTE
-	if(out_numClasses[0]>out_numClasses[1])
+	if(out_numClasses_l[0]>out_numClasses_l[1])
 		return 0;
 	else
 		return 1;
@@ -242,16 +242,16 @@ inline int emi_rnn(uint* test_input){
 #ifndef MOTE
 	//Print decision to csv file
 	string outstr;
-	for(int c = 0; c < numClasses -1 ; c++)
-		outstr += strBuild(out_numClasses[c], ',');
-	outstr += strBuild(out_numClasses[numClasses -1], '\n');
+	for(int c = 0; c < numClasses_l -1 ; c++)
+		outstr += strBuild(out_numClasses_l[c], ',');
+	outstr += strBuild(out_numClasses_l[numClasses_l -1], '\n');
 	outfile << outstr;
 #endif
 }
 
 bool emi_driver(uint* data){
 	// Reshape data
-	//int (&data2D)[orig_num_steps][inputDims] = *reinterpret_cast<int (*)[orig_num_steps][inputDims]>(&data);
+	//int (&data2D)[orig_num_steps][inputDims_l] = *reinterpret_cast<int (*)[orig_num_steps][inputDims_l]>(&data);
 	int maxconsectargets = 0;
 	bool detect_in_bag = false;
 	// Create instances and run EMI
@@ -261,10 +261,10 @@ bool emi_driver(uint* data){
 			// Correction for last iteration
 			end = orig_num_steps;
 		else
-			end = start + timeSteps;
+			end = start + timeSteps_l;
 
-		uint next_inst[timeSteps][inputDims] = {0};
-		extract_instance(data, (uint*)next_inst, start, end, inputDims);
+		uint next_inst[timeSteps_l][inputDims_l] = {0};
+		extract_instance(data, (uint*)next_inst, start, end, inputDims_l);
 		
 		// Call emi_rnn
 		int inst_dec = emi_rnn((uint*)next_inst);
@@ -294,10 +294,10 @@ void run_test(){
 	// Initialize output file
 	outfile.open("out_c++.csv");
 #endif
-	for(int d=0; d < numData; d ++)
+	for(int d=0; d < numData_l; d ++)
 	{
-		uint test_input[timeSteps][inputDims] = {0};
-		util_slice3D((uint*) test_inputs, (uint*) test_input, d, timeSteps, inputDims);
+		uint test_input[timeSteps_l][inputDims_l] = {0};
+		util_slice3D((uint*) test_inputs_l, (uint*) test_input, d, timeSteps_l, inputDims_l);
 
 #ifdef MOTE_PROFILE
 		// Profile latency per bag (second in V1)
@@ -306,7 +306,7 @@ void run_test(){
 #endif
 
 #ifdef DBG
-		util_printMatrix((uint*) test_input, timeSteps, inputDims);
+		util_printMatrix((uint*) test_input, timeSteps_l, inputDims_l);
 #endif
 		// Call emi_rnn
 		emi_rnn((uint*)test_input);

@@ -15,8 +15,7 @@ k=6
 update_nl = "quantTanh"
 gate_nl = "quantSigm"
 
-test_in_path = "/mnt/6b93b438-a3d4-40d2-9f3d-d8cdbb850183/Research/Deep_Learning_Radar/" \
-                "Data/Austere/BuildSys_Demo/Windowed/winlen_256_stride_128/12_8/x_test_unnorm.npy"
+test_in_path = "C++/x_test_unnorm.npy"
 
 def formatp(v, name, headless=False, endwith=";\n", file=sys.stdout):
     if v.ndim == 3:
@@ -95,16 +94,16 @@ formatp(q * I, 'q_times_I_l', file=model_params)
 
 formatp(I * np.ones(qU1.shape[0], dtype=int), 'I_l_vec', file=model_params)
 
-print('\nstatic const int wRank = ' + str(qW2.shape[0]) + ";", file=model_params)
-print('static const int uRank = ' + str(qU2.shape[0]) + ";", file=model_params)
-print('static const int inputDims = ' + str(qW1.shape[0]) + ";", file=model_params)
-print('static const int hiddenDims = ' + str(qU1.shape[0]) + ";", file=model_params)
-print('static const int timeSteps = ' + str(num_timesteps) + ";", file=model_params)
+print('\nstatic const int wRank_l = ' + str(qW2.shape[0]) + ";", file=model_params)
+print('static const int uRank_l = ' + str(qU2.shape[0]) + ";", file=model_params)
+print('static const int inputDims_l = ' + str(qW1.shape[0]) + ";", file=model_params)
+print('static const int hiddenDims_l = ' + str(qU1.shape[0]) + ";", file=model_params)
+print('static const int timeSteps_l = ' + str(num_timesteps) + ";", file=model_params)
 print('static const int numInstances = ' + str(num_instances) + ";", file=model_params)
-print('static const int numClasses = ' + str(num_classes) + ";", file=model_params)
+print('static const int numClasses_l = ' + str(num_classes) + ";", file=model_params)
 print('static const int numSamplesInBag = ' + str(num_samples_in_bag) + ";", file=model_params)
 print('static const int instStride = ' + str(inst_stride) + ";", file=model_params)
-print('static const int orig_num_steps = numSamplesInBag/inputDims;', file=model_params)
+print('static const int orig_num_steps = numSamplesInBag/inputDims_l;', file=model_params)
 print('static const int k = ' + str(k) + ";", file=model_params)
 print('\n#define UPDATE_NL', update_nl, file=model_params)
 print('#define GATE_NL', gate_nl, file=model_params)
@@ -113,12 +112,12 @@ test_data = open('C++/test_data.h', 'w')
 print("#ifndef MOTE", file=test_data)
 test_in = np.load(test_in_path)
 test_in = test_in.reshape(-1, test_in.shape[2], test_in.shape[3])
-formatp(test_in, 'test_inputs', file=test_data)
-print("static const int numData = " + str(test_in.shape[0]) + ";", file=test_data)
+formatp(test_in, 'test_inputs_l', file=test_data)
+print("static const int numData_l = " + str(test_in.shape[0]) + ";", file=test_data)
 print("#else", file=test_data)
 test_in_mote = test_in[0:30]
-formatp(test_in_mote, 'test_inputs', file=test_data)
-print("static const int numData = " + str(test_in_mote.shape[0]) + ";", file=test_data)
+formatp(test_in_mote, 'test_inputs_l', file=test_data)
+print("static const int numData_l = " + str(test_in_mote.shape[0]) + ";", file=test_data)
 print("#endif", file=test_data)
 
 np.save('C++/test_data.npy', test_in)

@@ -17,16 +17,16 @@ static const ll I_l= 100000;
 static const ll q_times_I_l= 1500000;
 static const ll I_l_vec[32] = {100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000};
 
-static const int wRank = 5;
-static const int uRank = 6;
-static const int inputDims = 8;
-static const int hiddenDims = 32;
-static const int timeSteps = 12;
+static const int wRank_l = 5;
+static const int uRank_l = 6;
+static const int inputDims_l = 8;
+static const int hiddenDims_l = 32;
+static const int timeSteps_l = 12;
 static const int numInstances = 8;
-static const int numClasses = 2;
+static const int numClasses_l = 2;
 static const int numSamplesInBag = 512;
 static const int instStride = 8;
-static const int orig_num_steps = numSamplesInBag/inputDims;
+static const int orig_num_steps = numSamplesInBag/inputDims_l;
 static const int k = 6;
 
 #define UPDATE_NL quantTanh
