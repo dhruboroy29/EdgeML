@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Remove output files
+rm "C++/out_py.csv"
+rm "C++/out_c++.csv"
+
 # Run Python pipeline
 echo "Running Python inference pipeline on test data..."
 python3 "C++/emi_fastgrnn.py"
