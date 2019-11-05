@@ -10,6 +10,7 @@ num_timesteps = 12
 num_classes = 2
 num_samples_in_bag = 512
 inst_stride = 8
+k=6
 
 update_nl = "quantTanh"
 gate_nl = "quantSigm"
@@ -103,6 +104,8 @@ print('static const int numInstances = ' + str(num_instances) + ";", file=model_
 print('static const int numClasses = ' + str(num_classes) + ";", file=model_params)
 print('static const int numSamplesInBag = ' + str(num_samples_in_bag) + ";", file=model_params)
 print('static const int instStride = ' + str(inst_stride) + ";", file=model_params)
+print('static const int orig_num_steps = numSamplesInBag/inputDims;', file=model_params)
+print('static const int k = ' + str(k) + ";", file=model_params)
 print('\n#define UPDATE_NL', update_nl, file=model_params)
 print('#define GATE_NL', gate_nl, file=model_params)
 
