@@ -116,12 +116,6 @@ inline int emi_rnn(uint* test_input){
 	cout << "Classification output:" << endl;
 	util_printVec(out_numClasses_l, numClasses_l);
 #endif
-#ifdef MOTE
-	if(out_numClasses_l[0]>out_numClasses_l[1])
-		return 0;
-	else
-		return 1;
-#endif
 #ifndef MOTE
 	//Print decision to csv file
 	string outstr;
@@ -130,6 +124,10 @@ inline int emi_rnn(uint* test_input){
 	outstr += strBuild(out_numClasses_l[numClasses_l -1], '\n');
 	outfile << outstr;
 #endif
+	if(out_numClasses_l[0]>out_numClasses_l[1])
+		return 0;
+	else
+		return 1;
 }
 
 bool emi_driver(uint* data){
