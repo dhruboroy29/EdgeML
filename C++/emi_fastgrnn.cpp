@@ -160,7 +160,7 @@ inline int emi_rnn(uint* test_input){
 		uint x_int[inputDims] = {0};
 		util_slice2D(test_input, x_int, t, inputDims);
 
-		ll x[8] = {};
+		ll x[inputDims] = {};
 
 		copyUIntVecToLL(x_int, x, inputDims);
 #ifdef DBG
@@ -283,7 +283,7 @@ bool emi_driver(uint* data){
 void run_test(){
 	int size = sizeof(qW1_transp_l) + sizeof(qFC_Bias_l) + sizeof(qW2_transp_l) + sizeof(qU2_transp_l) + sizeof(qFC_Weight_l) + sizeof(qU1_transp_l) + sizeof(qB_g_l) + sizeof(qB_h_l) + sizeof(q_l) + sizeof(I_l) + sizeof(mean_l) + sizeof(stdev_l) + sizeof(I_l_vec) + sizeof(q_times_I_l);
 	
-#ifdef DBG
+#ifndef MOTE
 	cout << "Model size: " << size/1000 << " KB" << endl << endl;
 #endif
 #ifdef MOTE_PROFILE
