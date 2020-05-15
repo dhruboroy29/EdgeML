@@ -12,7 +12,7 @@ num_splits='24'
 # Base path of data
 prefix = 'oldsetting_twotierEMI_3class_winlen_' + str(winlen)
 
-base='/scratch/dr2915/Bumblebee/bb_3class_winlen_' + str(winlen) + '_winindex_all/3class_48_16'
+base='/scratch/sk7898/buildsys_paper_data/bb_3class_winlen_' + str(winlen) + '_winindex_all/3class_48_16'
 
 # Batch system
 bat_sys='slurm'
