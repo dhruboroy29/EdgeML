@@ -889,7 +889,7 @@ class EMI_Driver:
     def run2tier(self, lowernumClasses, x_train, y_train, bag_train, x_val, y_val,
                  bag_val, numIter, numRounds, batchSize, numEpochs, echoCB=None,
                  redirFile=None, modelPrefix='/tmp/model', updatePolicy='top-k', predictPolicy = None,
-                 fracEMI=0.3, use_convergence=False, lossIndicator=None, *args, **kwargs):
+                 fracEMI=0.3, use_convergence=False, pretrain=True, lossIndicator=None, *args, **kwargs):
         '''
         Performs the EMI-RNN training routine.
 
@@ -936,7 +936,7 @@ class EMI_Driver:
         assert fracEMI >= 0
         assert fracEMI <= 1
 
-        if self._emiTrainer.joint:
+        if self._emiTrainer.joint and pretrain:
             # Set use_convergence to true
             use_convergence = True
 
@@ -966,22 +966,87 @@ class EMI_Driver:
                     nOut = self._emiTrainer.numOutput
                     lossIndicator = np.ones([nTs, nOut])
                     sess.run(self._emiTrainer.lossIndicatorAssignOp,
-                             feed_dict={self._emiTrainer.lossIndicatorPlaceholder:
-                                            lossIndicator})
+                             feed_dict={self._emiTrainer.lossIndicatorPlaceholder:lossIndicator})
             valAccList, globalStepList = [], []
-            # Train the best model for the current round
+              
+            # Train the two components of MSC-RNN till convergence before joint training
+            if pretrain:
+                for citer in range(numIter):
+                    self._dataPipe.runInitializer(sess, x_train, curr_y,
+                                                  batchSize, numEpochs)
+                    numBatches = int(np.ceil(len(x_train) / batchSize))
+                    self._emiTrainer.trainModel(sess, echoCB=self.fancyEcho,
+                                                numBatches=numBatches,
+                                                feedDict=feedDict,
+                                                redirFile=redirFile)
+                    acc = self.runOps([self._emiTrainer.accTilda],
+                                      x_val, y_val, batchSize, inference=True)
+
+                    loss = self.runOps([self._emiTrainer.lossOp],
+                                       x_val, y_val, batchSize, inference=True)
+
+                    acc = np.mean(np.reshape(np.array(acc), -1))
+                    loss = np.mean(np.reshape(np.array(loss), -1))
+                    print(" | Val loss %2.5f Val acc %2.5f | " % (loss, acc), end='', file=redirFile)
+                    self.__graphManager.checkpointModel(self.__saver, sess,
+                                                        modelPrefix,
+                                                        self.__globalStep,
+                                                        redirFile=redirFile)
+                    valAccList.append(acc)
+                    lossHistory.append(loss)
+                    globalStepList.append((modelPrefix, self.__globalStep))
+                    self.__globalStep += 1
+
+                    if use_convergence:
+                        if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
+                            patienceCount = 0
+                        else:
+                            patienceCount += 1
+
+                        if patienceCount > patience:
+                            print("Early stopping...: iter: ", citer)
+                            # stop = True
+                            break
+
+                # Print MI val loss history
+                print('Val Loss List:', lossHistory)
+
+                # Update y for the current round
+                ## Load the best val-acc model
+                argAcc = np.argmax(valAccList)
+                resPrefix, resStep = globalStepList[argAcc]
+                modelStats.append((cround, np.max(valAccList),
+                                   resPrefix, resStep))
+                self.loadSavedGraphToNewSession(resPrefix, resStep, redirFile)
+                sess = self.getCurrentSession()
+                feedDict = self.feedDictFunc(inference=True, **kwargs)
+                smxOut = self.runOps([self._emiTrainer.softmaxPredictions],
+                                     x_train, y_train, batchSize, feedDict)
+                smxOut = [np.array(smxOut[i][0]) for i in range(len(smxOut))]
+                smxOut = np.concatenate(smxOut)[:, :, -1, :]
+                newY = updatePolicyFunc(curr_y, smxOut, bag_train,
+                                        numClasses=lowernumClasses, **kwargs)
+                currY = newY
+
+            # Run upper RNN for iter*epochs, freezing lower EMI
+            print("\t\tTraining upper RNN till convergence", file=redirFile)
+            print("Round: 666", file=redirFile)
+            feedDict = self.feedDictFunc(inference=False, **kwargs)
+            lossHistory, valAccList, globalStepList = [], [], []
+            patienceCount = 0
+
             for citer in range(numIter):
                 self._dataPipe.runInitializer(sess, x_train, curr_y,
                                               batchSize, numEpochs)
                 numBatches = int(np.ceil(len(x_train) / batchSize))
-                self._emiTrainer.trainModel(sess, echoCB=self.fancyEcho,
+                self._emiTrainer.trainModel_upper(sess, echoCB=None,
                                             numBatches=numBatches,
                                             feedDict=feedDict,
                                             redirFile=redirFile)
-                acc = self.runOps([self._emiTrainer.accTilda],
+                acc = self.runOps([self._emiTrainer.accUpper],
                                   x_val, y_val, batchSize, inference=True)
 
-                loss = self.runOps([self._emiTrainer.lossOp],
+                loss = self.runOps([self._emiTrainer.lossOp_upper],
                                    x_val, y_val, batchSize, inference=True)
 
                 acc = np.mean(np.reshape(np.array(acc), -1))
@@ -1007,83 +1072,21 @@ class EMI_Driver:
                         # stop = True
                         break
 
-            # Print MI val loss history
+            # Print upper RNN loss history
             print('Val Loss List:', lossHistory)
-        
-            # Update y for the current round
-            ## Load the best val-acc model
+            ## Append the best top-tier val-acc model
             argAcc = np.argmax(valAccList)
             resPrefix, resStep = globalStepList[argAcc]
+            cround = 666         # So as not to confuse with below EMI rounds
             modelStats.append((cround, np.max(valAccList),
                                resPrefix, resStep))
-            self.loadSavedGraphToNewSession(resPrefix, resStep, redirFile)
-            sess = self.getCurrentSession()
-            feedDict = self.feedDictFunc(inference=True, **kwargs)
-            smxOut = self.runOps([self._emiTrainer.softmaxPredictions],
-                                 x_train, y_train, batchSize, feedDict)
-            smxOut = [np.array(smxOut[i][0]) for i in range(len(smxOut))]
-            smxOut = np.concatenate(smxOut)[:, :, -1, :]
-            newY = updatePolicyFunc(curr_y, smxOut, bag_train,
-                                    numClasses=lowernumClasses, **kwargs)
-            currY = newY
 
-        # Run upper RNN for iter*epochs, freezing lower EMI
-        print("\t\tTraining upper RNN till convergence", file=redirFile)
-        print("Round: 666", file=redirFile)
-        feedDict = self.feedDictFunc(inference=False, **kwargs)
-        lossHistory, valAccList, globalStepList = [], [], []
-        patienceCount = 0
-
-        for citer in range(numIter):
-            self._dataPipe.runInitializer(sess, x_train, curr_y,
-                                          batchSize, numEpochs)
-            numBatches = int(np.ceil(len(x_train) / batchSize))
-            self._emiTrainer.trainModel_upper(sess, echoCB=None,
-                                        numBatches=numBatches,
-                                        feedDict=feedDict,
-                                        redirFile=redirFile)
-            acc = self.runOps([self._emiTrainer.accUpper],
-                              x_val, y_val, batchSize, inference=True)
-
-            loss = self.runOps([self._emiTrainer.lossOp_upper],
-                               x_val, y_val, batchSize, inference=True)
-
-            acc = np.mean(np.reshape(np.array(acc), -1))
-            loss = np.mean(np.reshape(np.array(loss), -1))
-            print(" | Val loss %2.5f Val acc %2.5f | " % (loss, acc), end='', file=redirFile)
-            self.__graphManager.checkpointModel(self.__saver, sess,
-                                                modelPrefix,
-                                                self.__globalStep,
-                                                redirFile=redirFile)
-            valAccList.append(acc)
-            lossHistory.append(loss)
-            globalStepList.append((modelPrefix, self.__globalStep))
-            self.__globalStep += 1
-
-            if use_convergence:
-                if citer > 0 and (lossHistory[citer - 1] - lossHistory[citer]) > min_delta:
-                    patienceCount = 0
-                else:
-                    patienceCount += 1
-
-                if patienceCount > patience:
-                    print("Early stopping...: iter: ", citer)
-                    # stop = True
-                    break
-
-        # Print upper RNN loss history
-        print('Val Loss List:', lossHistory)
-        ## Append the best top-tier val-acc model
-        argAcc = np.argmax(valAccList)
-        resPrefix, resStep = globalStepList[argAcc]
         cround = 666         # So as not to confuse with below EMI rounds
-        modelStats.append((cround, np.max(valAccList),
-                           resPrefix, resStep))
-
-
         # Finally, joint training
         if self._emiTrainer.joint:
             print("\t\tJoint-training MSC-RNN", file=redirFile)
+            print("Pretrained Components: {} | use_convergence: {}".format(pretrain, use_convergence))
+            
             lossIndicator = None
             for cround in range(numRounds):
                 # Refresh lossHistory and patienceCount at the beginning of each round
