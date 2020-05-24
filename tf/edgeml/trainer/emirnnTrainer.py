@@ -1083,7 +1083,7 @@ class EMI_Driver:
 
         # Finally, joint training
         if self._emiTrainer.joint:
-            print("\t\tJoint-training EMI+RNN", file=redirFile)
+            print("\t\tJoint-training MSC-RNN", file=redirFile)
             lossIndicator = None
             for cround in range(numRounds):
                 # Refresh lossHistory and patienceCount at the beginning of each round
