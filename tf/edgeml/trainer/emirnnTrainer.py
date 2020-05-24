@@ -986,14 +986,13 @@ class EMI_Driver:
 
                 acc = np.mean(np.reshape(np.array(acc), -1))
                 loss = np.mean(np.reshape(np.array(loss), -1))
-                print(" Val acc %2.5f | " % acc, end='', file=redirFile)
+                print(" | Val loss %2.5f Val acc %2.5f | " % (loss, acc), end='', file=redirFile)
                 self.__graphManager.checkpointModel(self.__saver, sess,
                                                     modelPrefix,
                                                     self.__globalStep,
                                                     redirFile=redirFile)
                 valAccList.append(acc)
                 lossHistory.append(loss)
-                print(lossHistory)
                 globalStepList.append((modelPrefix, self.__globalStep))
                 self.__globalStep += 1
 
@@ -1008,6 +1007,9 @@ class EMI_Driver:
                         # stop = True
                         break
 
+            # Print MI val loss history
+            print('Val Loss List:', lossHistory)
+        
             # Update y for the current round
             ## Load the best val-acc model
             argAcc = np.argmax(valAccList)
@@ -1069,8 +1071,8 @@ class EMI_Driver:
                     # stop = True
                     break
 
-        # Print loss history
-        print(lossHistory)
+        # Print upper RNN loss history
+        print('Val Loss List:', lossHistory)
         ## Append the best top-tier val-acc model
         argAcc = np.argmax(valAccList)
         resPrefix, resStep = globalStepList[argAcc]
@@ -1129,14 +1131,13 @@ class EMI_Driver:
 
                     #acc = np.mean(np.reshape(np.array(acc), -1))
                     loss = np.mean(np.reshape(np.array(loss), -1))
-                    print(" Val acc %2.5f | " % acc, end='', file=redirFile)
+                    print(" | Val loss %2.5f Val acc %2.5f | " % (loss, acc), end='', file=redirFile)
                     self.__graphManager.checkpointModel(self.__saver, sess,
                                                         modelPrefix,
                                                         self.__globalStep,
                                                         redirFile=redirFile)
                     valAccList.append(acc)
                     lossHistory.append(loss)
-                    print(lossHistory)
                     globalStepList.append((modelPrefix, self.__globalStep))
                     self.__globalStep += 1
 
@@ -1151,6 +1152,9 @@ class EMI_Driver:
                             # stop = True
                             break
 
+                # Print joint training val loss history
+                print('Val Loss List:', lossHistory)
+        
                 # Update y for the current round
                 ## Load the best val-acc model
                 argAcc = np.argmax(valAccList)
