@@ -6,7 +6,8 @@
 #SBATCH --mem=5GB
 #SBATCH --mail-type=FAIL
 
-source activate tfgpu
+source activate l3embedding-tf-12-gpu
+#source activate tfgpu
 echo "FILENAME: " ${filename}
 module purge
 module load cudnn/9.0v7.3.0.29

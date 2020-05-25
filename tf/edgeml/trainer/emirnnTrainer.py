@@ -951,26 +951,27 @@ class EMI_Driver:
         min_delta = 1e-4
         modelStats = []
         # stop = False
-        for cround in range(numRounds):
-            # Refresh lossHistory and patienceCount at the beginning of each round
-            lossHistory = []
-            patienceCount = 0
-            feedDict = self.feedDictFunc(inference=False, **kwargs)
-            print("Round: %d" % cround, file=redirFile)
-            if cround == emiStep:
-                print("Switching to EMI-Loss function", file=redirFile)
-                if lossIndicator is not None:
-                    raise NotImplementedError('TODO')
-                else:
-                    nTs = self._emiTrainer.numTimeSteps
-                    nOut = self._emiTrainer.numOutput
-                    lossIndicator = np.ones([nTs, nOut])
-                    sess.run(self._emiTrainer.lossIndicatorAssignOp,
-                             feed_dict={self._emiTrainer.lossIndicatorPlaceholder:lossIndicator})
-            valAccList, globalStepList = [], []
+        
+        if pretrain:
+            for cround in range(numRounds):
+                # Refresh lossHistory and patienceCount at the beginning of each round
+                lossHistory = []
+                patienceCount = 0
+                feedDict = self.feedDictFunc(inference=False, **kwargs)
+                print("Round: %d" % cround, file=redirFile)
+                if cround == emiStep:
+                    print("Switching to EMI-Loss function", file=redirFile)
+                    if lossIndicator is not None:
+                        raise NotImplementedError('TODO')
+                    else:
+                        nTs = self._emiTrainer.numTimeSteps
+                        nOut = self._emiTrainer.numOutput
+                        lossIndicator = np.ones([nTs, nOut])
+                        sess.run(self._emiTrainer.lossIndicatorAssignOp,
+                                 feed_dict={self._emiTrainer.lossIndicatorPlaceholder:lossIndicator})
+                valAccList, globalStepList = [], []
               
-            # Train the two components of MSC-RNN till convergence before joint training
-            if pretrain:
+                # Train the two components of MSC-RNN till convergence before joint training
                 for citer in range(numIter):
                     self._dataPipe.runInitializer(sess, x_train, curr_y,
                                                   batchSize, numEpochs)
@@ -1080,9 +1081,10 @@ class EMI_Driver:
             cround = 666         # So as not to confuse with below EMI rounds
             modelStats.append((cround, np.max(valAccList),
                                resPrefix, resStep))
-
-        cround = 666         # So as not to confuse with below EMI rounds
+        #pretrain block ends
+       
         # Finally, joint training
+        cround = 666         # So as not to confuse with below EMI rounds
         if self._emiTrainer.joint:
             print("\t\tJoint-training MSC-RNN", file=redirFile)
             print("Pretrained Components: {} | use_convergence: {}".format(pretrain, use_convergence))

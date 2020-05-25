@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-source activate tfgpu
+source activate l3embedding-tf-2-cpu
 
 list_files=(
-            oldsetting_twotierEMI_3class_winlen_512
+    oldsetting_twotierEMI_3class_winlen_256
+    oldsetting_twotierEMI_3class_winlen_384
+    oldsetting_twotierEMI_3class_winlen_512
             )
 
 list_hiddensize=(16 32 64)
