@@ -5,12 +5,12 @@ sys.path.append('../')
 
 ######################### ONLY MODIFY THESE VALUES #########################
 # Number of splits of hyperparam file
-winlen = 512
+winlen = 256
 
 num_splits='24'
 
 # Base path of data
-prefix = 'bigoldsetting_jointEMI_3class_winlen_' + str(winlen)
+prefix = 'oldsetting_jointEMI_3class_winlen_' + str(winlen)
 
 base='/scratch/dr2915/Bumblebee/bb_3class_winlen_' + str(winlen) + '_winindex_all/3class_48_16'
 

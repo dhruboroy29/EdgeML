@@ -4,7 +4,6 @@ source activate tfgpu
 
 list_files=(
             jointEMI_3class_winlen_512
-            jointEMI_3class_winlen_768
             )
 
 list_hiddensize=(16 32 64)

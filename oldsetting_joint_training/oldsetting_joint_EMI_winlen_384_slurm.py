@@ -5,7 +5,7 @@ sys.path.append('../')
 
 ######################### ONLY MODIFY THESE VALUES #########################
 # Number of splits of hyperparam file
-winlen = 512
+winlen = 384
 
 num_splits='24'
 

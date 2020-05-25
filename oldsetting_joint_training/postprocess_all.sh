@@ -3,6 +3,8 @@
 source activate tfgpu
 
 list_files=(
+            oldsetting_jointEMI_3class_winlen_256
+            oldsetting_jointEMI_3class_winlen_384
             oldsetting_jointEMI_3class_winlen_512
             )
 
