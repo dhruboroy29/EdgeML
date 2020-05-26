@@ -396,6 +396,14 @@ x_test, y_test = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_test.n
                  np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_test.npy'))
 x_val, y_val = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_val.npy')), \
                np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_val.npy'))
+
+print("Embedding data-> x_train shape is:", x_train.shape)
+print("Embedding data-> y_train shape is:", y_train.shape)
+print("Embedding data-> x_val shape is:", x_val.shape)
+print("Embedding data-> y_val shape is:", y_val.shape)
+print("Embedding data-> x_test shape is:", x_val.shape)
+print("Embedding data-> y_test shape is:", y_val.shape)
+
 # Generate embeddings folder
 embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','MSC-EMI_embs_winlen' + str(ORIGINAL_NUM_TIMESTEPS)
                              + '_gN=' + GATE_NL
