@@ -423,6 +423,29 @@ NUM_OUTPUT = np.shape(y_train)[-1]
 # Re-init input pipeline with new NUM_OUTPUT and re-initialize emiDriver
 inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
 with graph.as_default():
+    # Obtain the iterators to each batch of the data
+    x_batch, y_batch = inputPipeline()
+
+    '''Change instance outputs to 1-hot 2-class: Noise vs Target'''
+    # Deconvert instances from one-hot
+    y_batch_1hotdecoded = tf.argmax(y_batch, axis=2)
+    # Change all non zeros to target class 1 for EMI
+    mask = tf.greater(y_batch_1hotdecoded, tf.zeros_like(y_batch_1hotdecoded))
+    y_batch_lower = tf.cast(mask, tf.int32)
+    # Convert back to 2-class one-hot
+    y_batch_lower = tf.one_hot(y_batch_lower, depth=2, axis=-1)
+
+    '''Change bag outputs to 1-hot 3-class: Noise vs Human vs Nonhuman'''
+    # Get bag outputs from batch
+    y_batch_upper = tf.argmax(y_batch[:, 0, :], axis=1)
+    # Convert to one-hot
+    y_batch_upper = tf.one_hot(y_batch_upper, depth=NUM_OUTPUT, axis=-1)
+
+    # Create the forward computation graph based on the iterators
+    y_cap, y_cap_upper = emiFastGRNN(x_batch)
+    # Create loss graphs and training routines
+    emiTrainer2tier(y_cap, y_cap_upper, y_batch_lower, y_batch_upper)
+    
     emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
 
 emiDriver.initializeSession(graph, config=config)
