@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source activate tfgpu
+source activate l3embedding-tf-12-gpu
 
 list_files=(
             oldsetting_jointEMI_3class_winlen_256
