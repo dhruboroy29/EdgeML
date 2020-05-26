@@ -388,6 +388,7 @@ out_handle.close()
 #print(tf.contrib.graph_editor.get_tensors(tf.get_default_graph()))
 
 # Finally, generate MSC-RNN embeddings on human-vs-nonhuman (2-class) data
+
 data_dir = os.path.dirname(data_dir)
 print('Preparing to generate embeddings from data in', os.path.join(data_dir,'HumanVsNonhuman_48_16'))
 x_train, y_train = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_train.npy')), \
@@ -417,43 +418,22 @@ embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','MSC-EMI_embs_winl
 
 os.makedirs(embedding_dir, exist_ok=True)
 
-print('Embedding data->Number of classes:', np.shape(y_train)[-1])
-NUM_OUTPUT = np.shape(y_train)[-1]
+# Re-encode
+with emiDriver.getCurrentSession():
+    y_train_modified_1hot = tf.one_hot(tf.argmax(y_train, axis=2), depth=NUM_OUTPUT, axis=-1).eval()
+    y_val_modified_1hot = tf.one_hot(tf.argmax(y_val, axis=2), depth=NUM_OUTPUT, axis=-1).eval()
+    y_test_modified_1hot = tf.one_hot(tf.argmax(y_test, axis=2), depth=NUM_OUTPUT, axis=-1).eval()
 
-# Re-init input pipeline with new NUM_OUTPUT and re-initialize emiDriver
-inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
-with graph.as_default():
-    # Obtain the iterators to each batch of the data
-    x_batch, y_batch = inputPipeline()
+print("Re-encoding y's to fit training pipeline.")
+print("Embedding data-> y_train_modified_1hot shape is:", y_train_modified_1hot.shape)
+print("Embedding data-> y_val_modified_1hot shape is:", y_val_modified_1hot.shape)
+print("Embedding data-> y_test_modified_1hot shape is:", y_test_modified_1hot.shape)
 
-    '''Change instance outputs to 1-hot 2-class: Noise vs Target'''
-    # Deconvert instances from one-hot
-    y_batch_1hotdecoded = tf.argmax(y_batch, axis=2)
-    # Change all non zeros to target class 1 for EMI
-    mask = tf.greater(y_batch_1hotdecoded, tf.zeros_like(y_batch_1hotdecoded))
-    y_batch_lower = tf.cast(mask, tf.int32)
-    # Convert back to 2-class one-hot
-    y_batch_lower = tf.one_hot(y_batch_lower, depth=2, axis=-1)
-
-    '''Change bag outputs to 1-hot 3-class: Noise vs Human vs Nonhuman'''
-    # Get bag outputs from batch
-    y_batch_upper = tf.argmax(y_batch[:, 0, :], axis=1)
-    # Convert to one-hot
-    y_batch_upper = tf.one_hot(y_batch_upper, depth=NUM_OUTPUT, axis=-1)
-
-    # Create the forward computation graph based on the iterators
-    y_cap, y_cap_upper = emiFastGRNN(x_batch)
-    # Create loss graphs and training routines
-    emiTrainer2tier(y_cap, y_cap_upper, y_batch_lower, y_batch_upper)
-    
-    emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
-
-emiDriver.initializeSession(graph, config=config)
 
 # Get embeddings of Train data
 print('Generating embeddings for X_train............')
 train_emb_output_path = os.path.join(embedding_dir,'embedding_train.npy')
-train_embeddings = emiDriver.getInstanceEmbeddings(graph, x_train, y_train)
+train_embeddings = emiDriver.getInstanceEmbeddings(graph, x_train, y_train_modified_1hot)
 np.save(train_emb_output_path, train_embeddings)
 # Save labels (convert back from one-hot)
 np.save(os.path.join(embedding_dir,'embedding_train_lbls.npy'), np.amax(np.argmax(y_train, axis=2), axis=1))
@@ -461,7 +441,7 @@ np.save(os.path.join(embedding_dir,'embedding_train_lbls.npy'), np.amax(np.argma
 # Get embeddings of Test data
 print('Generating embeddings for X_test.............')
 test_emb_output_path = os.path.join(embedding_dir,'embedding_test.npy')
-test_embeddings = emiDriver.getInstanceEmbeddings(graph, x_test, y_test)
+test_embeddings = emiDriver.getInstanceEmbeddings(graph, x_test, y_test_modified_1hot)
 np.save(test_emb_output_path, test_embeddings)
 # Save labels (convert back from one-hot)
 np.save(os.path.join(embedding_dir,'embedding_test_lbls.npy'), np.amax(np.argmax(y_test, axis=2), axis=1))
@@ -469,7 +449,7 @@ np.save(os.path.join(embedding_dir,'embedding_test_lbls.npy'), np.amax(np.argmax
 # Get embeddings of Val data
 print('Generating embeddings for X_val..............')
 val_emb_output_path = os.path.join(embedding_dir,'embedding_val.npy')
-val_embeddings = emiDriver.getInstanceEmbeddings(graph, x_val, y_val)
+val_embeddings = emiDriver.getInstanceEmbeddings(graph, x_val, y_val_modified_1hot)
 np.save(val_emb_output_path, val_embeddings)
 # Save labels (convert back from one-hot)
 np.save(os.path.join(embedding_dir,'embedding_val_lbls.npy'), np.amax(np.argmax(y_val, axis=2), axis=1))
