@@ -335,7 +335,7 @@ for val in modelStats:
 ''' Compute test accuracy on best model obtained above'''
 print("*******\t BEST MODEL TEST CONFUSION MATRIX\t*******")
 # Get instance-level predictions
-emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 predictions, predictionStep = emiDriver.getInstancePredictions(x_test, y_test, earlyPolicy_minProb,
                                                            minProb=0.99, keep_prob=1.0)
 # Get bag-level predictions
@@ -384,7 +384,7 @@ out_handle = open(args.out, "a")
 out_handle.write('\t'.join(map(str, results_list)) + '\n')
 out_handle.close()
 
-graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
+# graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=devnull)
 #print(tf.contrib.graph_editor.get_tensors(tf.get_default_graph()))
 
 # Finally, generate MSC-RNN embeddings on human-vs-nonhuman (2-class) data
@@ -418,7 +418,15 @@ embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','MSC-EMI_embs_winl
 os.makedirs(embedding_dir, exist_ok=True)
 
 print('Embedding data->Number of classes:', np.shape(y_train)[-1])
-emiDriver._dataPipe.numOutput = np.shape(y_train)[-1]
+NUM_OUTPUT = np.shape(y_train)[-1]
+
+# Re-init input pipeline with new NUM_OUTPUT and re-initialize emiDriver
+inputPipeline = EMI_DataPipeline(NUM_SUBINSTANCE, NUM_TIMESTEPS, NUM_FEATS, NUM_OUTPUT)
+with graph.as_default():
+    emiDriver = EMI_Driver(inputPipeline, emiFastGRNN, emiTrainer2tier)
+
+emiDriver.initializeSession(graph, config=config)
+
 # Get embeddings of Train data
 print('Generating embeddings for X_train............')
 train_emb_output_path = os.path.join(embedding_dir,'embedding_train.npy')
