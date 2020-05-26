@@ -417,6 +417,8 @@ embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','MSC-EMI_embs_winl
 
 os.makedirs(embedding_dir, exist_ok=True)
 
+print('Embedding data->Number of classes:', np.shape(y_train)[-1])
+emiDriver._dataPipe.numOutput = np.shape(y_train)[-1]
 # Get embeddings of Train data
 print('Generating embeddings for X_train............')
 train_emb_output_path = os.path.join(embedding_dir,'embedding_train.npy')
