@@ -419,7 +419,7 @@ embedding_dir = os.path.join(data_dir,'HumanVsNonhuman_48_16','MSC-EMI_embs_winl
 os.makedirs(embedding_dir, exist_ok=True)
 
 # Re-encode
-with emiDriver.getCurrentSession():
+with tf.Session():
     y_train_modified_1hot = tf.one_hot(tf.argmax(y_train, axis=2), depth=NUM_OUTPUT, axis=-1).eval()
     y_val_modified_1hot = tf.one_hot(tf.argmax(y_val, axis=2), depth=NUM_OUTPUT, axis=-1).eval()
     y_test_modified_1hot = tf.one_hot(tf.argmax(y_test, axis=2), depth=NUM_OUTPUT, axis=-1).eval()
