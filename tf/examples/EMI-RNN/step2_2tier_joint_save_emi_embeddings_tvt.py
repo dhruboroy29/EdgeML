@@ -388,6 +388,7 @@ graph = emiDriver.loadSavedGraphToNewSession(modelPrefix, globalStep, redirFile=
 #print(tf.contrib.graph_editor.get_tensors(tf.get_default_graph()))
 
 # Finally, generate MSC-RNN embeddings on human-vs-nonhuman (2-class) data
+data_dir = os.path.dirname(data_dir)
 print('Preparing to generate embeddings from data in', os.path.join(data_dir,'HumanVsNonhuman_48_16'))
 x_train, y_train = np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','x_train.npy')), \
                    np.load(os.path.join(data_dir,'HumanVsNonhuman_48_16','y_train.npy'))
