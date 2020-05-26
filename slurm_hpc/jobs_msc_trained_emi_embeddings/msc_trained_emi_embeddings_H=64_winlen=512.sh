@@ -1,0 +1,2 @@
+outname=`echo $0 | sed "s/.sh/.out/g"`
+python3 ../tf/examples/EMI-RNN/step2_2tier_joint_save_emi_embeddings_tvt.py -O 3 -gN sigmoid -uN tanh -bs 128 -H 64 -Dat /scratch/sk7898/buildsys_paper_data/bb_3class_winlen_512_winindex_all/3class_48_16 -rnd 5 -it 10 -ep 50 -ots 512 -k 10 -out $outname
