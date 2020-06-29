@@ -47,7 +47,7 @@ def generate_trainstring(v):
               + " -gN " + str(v[0]) + " -uN " + str(v[1]) + " -bs " + str(v[2]) + " -H " + str(
         v[3]) + " -Dat " + args.base \
               + " -rnd " + str(args.rnd) + " -it " + str(args.it) + " -ep " + str(args.ep) + " -ots " + str(
-        args.ots) + " -k 100 -out $outname"
+        args.ots) + " -k 10 -out $outname"
 
     return res_str
 
