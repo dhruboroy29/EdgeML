@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source activate tfgpu
+source activate l3embedding-tf-2-gpu
 
 list_files=(
             twotierEMI_3class_winlen_256
@@ -8,6 +8,8 @@ list_files=(
             )
 
 list_hiddensize=(16 32 64)
+
+cd ../slurm_hpc
 
 # Collate outputs first
 for l in ${list_files[@]}; do
