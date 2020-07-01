@@ -7,7 +7,7 @@ sys.path.append('../')
 # Number of splits of hyperparam file
 winlen = 384
 
-num_splits='8'
+num_splits='16'
 
 # Base path of data
 prefix = 'jointEMI_no_pretraining_3class_winlen_' + str(winlen)

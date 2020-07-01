@@ -34,7 +34,7 @@ else:
     p1 = ['tanh', 'sigmoid']
 
 p2 = [64, 128]
-p3 = [64]
+p3 = [16, 32, 64]
 
 out_folder = os.path.join('..', args.bat + '_hpc')
 out_suffix = ''

@@ -3,12 +3,12 @@
 source activate l3embedding-tf-2-cpu
 
 list_files=(
-            twotierEMI_3class_winlen_256
-	    twotierEMI_3class_winlen_384
 	    twotierEMI_3class_winlen_512
             )
 
 list_hiddensize=(16 32 64)
+
+cd ../slurm_hpc
 
 # Collate outputs first
 for l in ${list_files[@]}; do
